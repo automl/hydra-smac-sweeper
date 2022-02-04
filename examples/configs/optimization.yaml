@@ -1,0 +1,16 @@
+defaults:
+  - override hydra/sweeper: SMAC
+
+search_space:
+  x0:
+    type: float
+    low: -5.5
+    high: 5.5
+    step: null
+    log: false
+  x1:
+    type: float
+    low: -10
+    high: 5
+    step: null
+    log: true
