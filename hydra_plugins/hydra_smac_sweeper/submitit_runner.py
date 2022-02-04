@@ -1,9 +1,9 @@
 import time
 import typing
 
-from hydra.core.utils import JobReturn
+from hydra.core.utils import JobReturn, JobStatus
 from omegaconf import OmegaConf
-
+from smac.tae.execute_func import ExecuteTAFuncDict
 from smac.configspace import Configuration
 from smac.runhistory.runhistory import RunInfo, RunValue
 from smac.tae import StatusType
@@ -11,7 +11,7 @@ from smac.tae.base import BaseRunner
 from submitit import Job
 import pandas as pd
 
-from hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncher
+from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncher
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
@@ -25,12 +25,14 @@ class SubmititRunner(BaseRunner):
 
     def __init__(
         self,
-        single_worker: BaseRunner,
+        ta: typing.Callable,
         launcher: SubmititSmacLauncher,
         n_jobs: int,
         output_directory: typing.Optional[str] = None,
+        budget_variable: typing.Optional[str] = None,
+        **kwargs
     ):
-
+        single_worker = ExecuteTAFuncDict(ta=ta, **kwargs)
         super().__init__(
             ta=single_worker.ta,
             stats=single_worker.stats,
@@ -49,11 +51,11 @@ class SubmititRunner(BaseRunner):
         self.launcher = launcher
         self.n_jobs = n_jobs
         self.job_idx = 0
-        self.futures: typing.List[Job[JobReturn]] = []
-        self.run_infos: typing.List[RunInfo] = []
+        self.futures: typing.Dict[RunInfo, typing.List[Job[JobReturn]]] = {}
         self.results: typing.List[typing.Tuple[RunInfo, Job]] = []
         self.base_cfg_flat = flatten_dict(OmegaConf.to_container(
-            launcher.config, resolve=True, enum_to_str=True))
+            launcher.config, enum_to_str=True))
+        self.budget_variable = budget_variable
 
     def submit_run(self, run_info: RunInfo) -> None:
         """This function submits a configuration
@@ -74,25 +76,30 @@ class SubmititRunner(BaseRunner):
             An object containing the configuration and the necessary data to run it
         """
         # Check for resources or block till one is available
-
+        assert self.launcher.config
+        while not self._workers_available():
+            self.wait()
+            self._extract_completed_runs_from_futures()
+        # TODO(frederik): maybe batch multiple runs together in an job array
         overrides = self._diff_overrides(run_info)
-        overrides.append(
-            tuple(f"smac.{name}={val}" for name, val in run_info[1:]))
-        overrides.append((f"smac.budget_variable={run_info.budget}"))
+        if self.budget_variable:
+            overrides.append(
+                (f"{self.budget_variable}={run_info.budget}",))
         jobs = self.launcher.launch(overrides, self.job_idx)
-        self.run_infos.extend([run_info] * len(jobs))
-        self.futures.extend(jobs)
+        self.futures[run_info] = jobs
         self.job_idx += len(jobs)
 
     def _diff_overrides(self, run_info: RunInfo):
-        run_info_cfg_flat = flatten_dict(run_info.config)
-        diff_overrides = []
-        for key, val1 in run_info_cfg_flat.items():
-            val2 = self.base_cfg_flat[key]
-            if val1 != val2:
-                diff_overrides.append((f"{key}={val1}",))
+        run_info_cfg_flat = flatten_dict(run_info.config.get_dictionary())
+        diff_overrides = [tuple(f"{key}={val1}" for key, val1 in run_info_cfg_flat.items(
+        ) if val1 != self.base_cfg_flat[key])]
         return diff_overrides
-                
+
+    def _workers_available(self) -> bool:
+        if len(self.futures) < self.n_jobs:
+            return True
+        return False
+
     def get_finished_runs(self) -> typing.List[typing.Tuple[RunInfo, RunValue]]:
         """This method returns any finished configuration, and returns a list with
         the results of exercising the configurations. This class keeps populating results
@@ -114,7 +121,7 @@ class SubmititRunner(BaseRunner):
             run_info, job = self.results.pop()
             ret = job.result()
             endtime = time.time()
-            run_value = RunValue(cost=ret.return_value, time=endtime - job._start_time, status=ret.status,
+            run_value = RunValue(cost=ret.return_value, time=endtime - job._start_time, status=StatusType.SUCCESS if ret.status == JobStatus.COMPLETED else StatusType.CRASHED,
                                  starttime=job._start_time, endtime=endtime, additional_info=None)
             results_list.append((run_info, run_value))
         return results_list
@@ -127,12 +134,12 @@ class SubmititRunner(BaseRunner):
         We make sure futures never exceed the capacity of
         the scheduler
         """
-        done_futures = [f for f in self.futures if f.done()]
-        for i, future in enumerate(done_futures):
-            run_info = self.run_infos[i]
-            self.results.append((run_info, future))
-            self.run_infos.remove(run_info)
-            self.futures.remove(future)
+        done_futures = [(run_info, jobs) for run_info, jobs in self.futures.items()
+                        if any([f.done() for f in jobs])]
+        for run_info, futures in done_futures:
+            for future in futures:
+                self.results.append((run_info, future))
+            self.futures.pop(run_info)
 
     def wait(self) -> None:
         """SMBO/intensifier might need to wait for runs to finish before making a decision.
@@ -140,8 +147,8 @@ class SubmititRunner(BaseRunner):
         """
         if self.futures:
             while True:
-                for job in self.futures:
-                    if job.done():
+                for jobs in self.futures.values():
+                    if all([job.done() for job in jobs]):
                         return
                 time.sleep(1)
 

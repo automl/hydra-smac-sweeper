@@ -1,1 +1,36 @@
-x: [3,4]
+defaults:
+  - override hydra/sweeper: SMAC
+  - override hydra/launcher: submitit_smac_slurm
+
+hydra:
+  launcher:
+    partition: cpu_normal
+  sweeper:
+    n_jobs: 1
+    scenario:
+      run_obj: quality
+      deterministic: false
+      # runcount_limit: 10
+      wallclock_limit: 30
+    search_space:
+      hyperparameters:
+        x0:
+          type: uniform_float
+          lower: -5.5
+          upper: 5.5
+          log: false
+        x1:
+          type: uniform_float
+          lower: 1e-3
+          upper: 5
+          log: true
+          default_value: 2
+  run:
+    dir: ../tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ../tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+x0: 3
+x1: 4
+
+spurious_var: 3.14

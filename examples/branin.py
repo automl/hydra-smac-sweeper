@@ -29,28 +29,30 @@ crucial. The format of the results must be the following to ensure correct usage
 
 """
 
+import logging
 import numpy as np
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 __copyright__ = "Copyright 2022, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
 
+log = logging.getLogger(__name__)
+
 
 @hydra.main(config_path="configs", config_name="branin")
 def branin(cfg: DictConfig):
-    x = cfg.x
-    x1 = x[0]
-    x2 = x[1]
+    log.info(OmegaConf.to_yaml(cfg))
+    x0 = cfg.x0
+    x1 = cfg.x1
     a = 1.
     b = 5.1 / (4. * np.pi ** 2)
     c = 5. / np.pi
     r = 6.
     s = 10.
     t = 1. / (8. * np.pi)
-    ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-
-    print(ret)
+    ret = a * (x1 - b * x0 ** 2 + c * x0 - r) ** 2 + \
+        s * (1 - t) * np.cos(x0) + s
 
     return ret
 

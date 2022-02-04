@@ -11,6 +11,7 @@ class JSONCfgEncoder(json.JSONEncoder):
 
     Convert DictConfigs to normal dicts.
     """
+
     def default(self, obj):
         if isinstance(obj, DictConfig):
             return dict(obj)
@@ -102,9 +103,3 @@ def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Opt
     if seed is not None:
         cs.seed(seed=seed)
     return cs
-
-
-if __name__ == "__main__":
-    fname = "../examples/configs/optimization.yaml"
-    config = OmegaConf.load(fname)
-    cs = search_space_to_config_space(search_space=config.smac.search_space)
