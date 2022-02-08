@@ -18,14 +18,14 @@ hydra:
       hyperparameters:
         x0:
           type: uniform_float
-          lower: -5.5
-          upper: 5.5
+          lower: -5
+          upper: 10
           log: false
         x1:
           type: uniform_float
-          lower: 1e-3
-          upper: 5
-          log: true
+          lower: 0
+          upper: 15
+          log: false
           default_value: 2
   run:
     dir: ../tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
