@@ -1,3 +1,4 @@
+import logging
 from typing import cast, List, Optional
 
 from hydra.plugins.sweeper import Sweeper
@@ -13,6 +14,8 @@ from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
 from smac.scenario.scenario import Scenario
 from smac.facade.smac_mf_facade import SMAC4MF
 from hydra_plugins.hydra_smac_sweeper.utils import silence_smac_loggers
+
+log = logging.getLogger(__name__)
 
 
 class SMACSweeperBackend(Sweeper):
@@ -79,4 +82,9 @@ class SMACSweeperBackend(Sweeper):
         )
         silence_smac_loggers()
         incumbent = smac.optimize()
+        smac.solver.stats.print_stats()
+        log.info("Final Incumbent: %s", smac.solver.incumbent)
+        if smac.solver.incumbent and smac.solver.incumbent in smac.solver.runhistory.get_all_configs():
+            log.info("Estimated cost of incumbent: %f",
+                     smac.solver.runhistory.get_cost(smac.solver.incumbent))
         return incumbent

@@ -50,10 +50,6 @@ class SubmititSmacLauncher(SlurmLauncher):
         }
         executor.update_parameters(**params)
 
-        log.info(
-            f"Submitit '{self._EXECUTOR}' sweep output dir : "
-            f"{self.config.hydra.sweep.dir}"
-        )
         sweep_dir = Path(str(self.config.hydra.sweep.dir))
         sweep_dir.mkdir(parents=True, exist_ok=True)
         if "mode" in self.config.hydra.sweep:
