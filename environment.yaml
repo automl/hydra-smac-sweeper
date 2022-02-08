@@ -1,0 +1,15 @@
+name: hydra-smac-sweeper
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - swig
+  - ca-certificates
+  - certifi
+  - openssl
+  - pip:
+    - pandas
+    - hydra-core
+    - smac
+    - hydra_colorlog
