@@ -10,7 +10,8 @@ hydra:
     scenario:
       run_obj: quality
       deterministic: true
-      wallclock_limit: 60
+#      wallclock_limit: 60
+      runcount_limit: 50
     intensifier:
       initial_budget: 1
       max_budget: 1
@@ -28,9 +29,9 @@ hydra:
           log: false
           default_value: 2
   run:
-    dir: ../tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
   sweep:
-    dir: ../tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
 
 x0: 3
 x1: 4
