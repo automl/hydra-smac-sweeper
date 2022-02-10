@@ -102,6 +102,13 @@ def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Opt
             hyperparameters.append(cfg)
         search_space.hyperparameters = hyperparameters
 
+        if "conditions" not in search_space:
+            search_space["conditions"] = []
+        
+        if "forbiddens" not in search_space:
+            search_space["forbiddens"] = []
+        
+
         jason_string = json.dumps(search_space, cls=JSONCfgEncoder)
 
     cs = csjson.read(jason_string)
