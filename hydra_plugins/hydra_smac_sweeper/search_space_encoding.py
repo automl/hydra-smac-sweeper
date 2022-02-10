@@ -28,25 +28,6 @@ class JSONCfgEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def flatten(list_config: ListConfig) -> List[DictConfig]:
-    """
-    Flatten.
-
-    List[Dict[cond_name, condition_dict]] -> List[condition_dict]
-
-    Parameters
-    ----------
-    list_config : ListConfig
-        Input list of configs.
-
-    Returns
-    -------
-    List[DictConfig]
-        Flattened list.
-    """
-    return [list(entry.values())[0] for entry in list_config]
-
-
 def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Optional[int] = None) -> ConfigurationSpace:
     """
     Convert hydra search space to SMAC's configuration space.
@@ -120,15 +101,6 @@ def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Opt
                 cfg["log"] = False
             hyperparameters.append(cfg)
         search_space.hyperparameters = hyperparameters
-
-        if "conditions" not in search_space:
-            search_space["conditions"] = []
-        else:
-            search_space["conditions"] = flatten(search_space["conditions"])
-        if "forbiddens" not in search_space:
-            search_space["forbiddens"] = []
-        else:
-            search_space["forbiddens"] = flatten(search_space["forbiddens"])
 
         jason_string = json.dumps(search_space, cls=JSONCfgEncoder)
 

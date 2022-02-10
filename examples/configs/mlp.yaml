@@ -13,7 +13,6 @@ max_epochs: 50
 seed: 42
 budget: ${max_epochs}
 
-
 hydra:
   launcher:
     partition: cpu_normal
@@ -23,10 +22,10 @@ hydra:
     scenario:
       run_obj: quality
       deterministic: true
-#      wallclock_limit: 100
+      #      wallclock_limit: 100
       runcount_limit: 50
-      cutoff: 30  # runtime limit for target algorithm
-      memory_limit: 3072  # adapt this to reasonable value for your hardware
+      cutoff: 30 # runtime limit for target algorithm
+      memory_limit: 3072 # adapt this to reasonable value for your hardware
     intensifier:
       initial_budget: 5
       max_budget: ${budget}
@@ -67,25 +66,21 @@ hydra:
           upper: 1
           default_value: ${learning_rate_init}
           log: true
-      conditions:  # provide conditions as a list, the condition names do not matter
-        - condition1:
-            child: batch_size
-            parent: solver
-            type: IN
-            values: [sgd, adam]
-        - condition2:
-            child: learning_rate
-            parent: solver
-            type: EQ
-            value: sgd
-        - condition3:
-            child: learning_rate_init
-            parent: solver
-            type: IN
-            values: [sgd, adam]
+      conditions:
+        - child: batch_size
+          parent: solver
+          type: IN
+          values: [sgd, adam]
+        - child: learning_rate
+          parent: solver
+          type: EQ
+          value: sgd
+        - child: learning_rate_init
+          parent: solver
+          type: IN
+          values: [sgd, adam]
 
   run:
     dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
   sweep:
     dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
-
