@@ -7,10 +7,10 @@ with open("README.md", "r") as fh:
         version="1.0.0",
         author="",
         author_email="",
-        description="Hydra SMAC Sweeper plugin",
+        description="Hydra SMAC Sweeper Plugin",
         long_description=LONG_DESC,
         long_description_content_type="text/markdown",
-        url="https://github.com/facebookresearch/hydra/",
+        url="https://github.com/automl/hydra-smac-sweeper/",
         packages=find_namespace_packages(include=["hydra_plugins.*"]),
         classifiers=[
             # Feel free to use another license.
