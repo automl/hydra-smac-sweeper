@@ -14,8 +14,8 @@ class SMACSweeperConfig:
     scenario: Dict[str, Any] = field(default_factory=dict)
     n_jobs: int = 1
     seed: Optional[int] = None
+    budget_variable: str = "budget"
     intensifier: Optional[Dict[str, Any]] = None
-    budget_variable: Optional[str] = None
 
 
 ConfigStore.instance().store(group="hydra/sweeper",

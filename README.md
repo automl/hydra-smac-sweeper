@@ -126,9 +126,11 @@ Example for optimizing a Multi-Layer Perceptron (MLP) using multiple budgets
 (`mlp.py` with the yaml-config `configs/mlp.yaml`).
 The search space is hierarchical: Some options are only available if other categorical
 choices are selected.
+The budget variable is set by the intensifier for each run and can be specified in the sweeper config.
 ```yaml
 hydra:
   sweeper:
+    budget_variable: max_epochs
     ...
     search_space:
       hyperparameters:

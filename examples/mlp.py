@@ -37,7 +37,7 @@ digits = load_digits()
 
 # Target Algorithm
 @hydra.main(config_path="configs", config_name="mlp")
-def mlp_from_cfg(cfg):
+def mlp_from_cfg(cfg: DictConfig):
     """
     Creates a MLP classifier from sklearn and fits the given data on it.
 
@@ -55,32 +55,30 @@ def mlp_from_cfg(cfg):
     float
     """
     log.info(OmegaConf.to_yaml(cfg))
-    seed = cfg["seed"]
-    budget = cfg["budget"]
 
     # For deactivated parameters, the configuration stores None-values.
     # This is not accepted by the MLP, so we replace them with placeholder values.
-    lr = cfg["learning_rate"] if cfg["learning_rate"] else "constant"
-    lr_init = cfg["learning_rate_init"] if cfg["learning_rate_init"] else 0.001
-    batch_size = cfg["batch_size"] if cfg["batch_size"] else 200
+    lr = cfg.learning_rate or "constant"
+    lr_init = cfg.learning_rate_init or 0.001
+    batch_size = cfg.batch_size or 200
 
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
         mlp = MLPClassifier(
-            hidden_layer_sizes=[cfg["n_neurons"]] * cfg["n_layer"],
-            solver=cfg["solver"],
+            hidden_layer_sizes=[cfg.n_neurons] * cfg.n_layer,
+            solver=cfg.solver,
             batch_size=batch_size,
-            activation=cfg["activation"],
+            activation=cfg.activation,
             learning_rate=lr,
             learning_rate_init=lr_init,
-            max_iter=int(np.ceil(budget)),
-            random_state=seed,
+            max_iter=int(np.ceil(cfg.max_epochs)),
+            random_state=cfg.seed,
         )
 
         # returns the cross validation accuracy
         cv = StratifiedKFold(
-            n_splits=5, random_state=seed, shuffle=True
+            n_splits=5, random_state=cfg.seed, shuffle=True
         )  # to make CV splits consistent
         score = cross_val_score(
             mlp, digits.data, digits.target, cv=cv, error_score="raise"

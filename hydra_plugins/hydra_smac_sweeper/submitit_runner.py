@@ -28,8 +28,8 @@ class SubmititRunner(BaseRunner):
         ta: typing.Callable,
         launcher: SubmititSmacLauncher,
         n_jobs: int,
+        budget_variable: str,
         output_directory: typing.Optional[str] = None,
-        budget_variable: typing.Optional[str] = None,
         **kwargs
     ):
         single_worker = ExecuteTAFuncDict(ta=ta, **kwargs)
@@ -80,11 +80,9 @@ class SubmititRunner(BaseRunner):
         while not self._workers_available():
             self.wait()
             self._extract_completed_runs_from_futures()
-        # TODO(frederik): maybe batch multiple runs together in an job array
         overrides = self._diff_overrides(run_info)
-        if self.budget_variable:
-            overrides.append(
-                (f"{self.budget_variable}={run_info.budget}",))
+        overrides = [
+            override + (f"{self.budget_variable}={run_info.budget}",) for override in overrides]
         jobs = self.launcher.launch(overrides, self.job_idx)
         self.futures[run_info] = jobs
         self.job_idx += len(jobs)

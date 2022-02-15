@@ -11,12 +11,12 @@ solver: adam
 activation: tanh
 max_epochs: 50
 seed: 42
-budget: ${max_epochs}
 
 hydra:
   launcher:
     partition: cpu_normal
   sweeper:
+    budget_variable: max_epochs
     seed: ${seed}
     n_jobs: 4
     scenario:
@@ -28,7 +28,7 @@ hydra:
       memory_limit: 3072 # adapt this to reasonable value for your hardware
     intensifier:
       initial_budget: 5
-      max_budget: ${budget}
+      max_budget: ${max_epochs}
       eta: 3
     search_space:
       hyperparameters:
