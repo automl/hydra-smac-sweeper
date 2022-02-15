@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 
 class SubmititSmacLauncher(SlurmLauncher):
+    global_overrides: List[str] = []
 
     def launch(
         self, job_overrides: Sequence[Sequence[str]], initial_job_idx: int
@@ -63,7 +64,7 @@ class SubmititSmacLauncher(SlurmLauncher):
             log.info(f"\t#{idx} : {lst}")
             job_params.append(
                 (
-                    list(overrides),
+                    list(overrides) + self.global_overrides,
                     "hydra.sweep.dir",
                     idx,
                     f"job_id_for_{idx}",
