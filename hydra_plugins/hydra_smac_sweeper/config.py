@@ -28,6 +28,8 @@ class LauncherConfig(SlurmQueueConf):
         "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SubmititSmacLauncher"
     )
 
+    progress: str = "interactive"  # basic, interactive
+    progress_slurm_refresh_interval: int = 2
 
 ConfigStore.instance().store(
     group="hydra/launcher",

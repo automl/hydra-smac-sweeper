@@ -29,6 +29,7 @@ class SubmititSmacLauncher(SlurmLauncher):
         assert num_jobs > 0
         params = self.params
         # build executor
+        submitit_smac_launcher_keys = {'progress', 'progress_slurm_refresh_interval'}
         init_params = {"folder": self.params["submitit_folder"]}
         specific_init_keys = {"max_num_timeout"}
 
@@ -36,7 +37,7 @@ class SubmititSmacLauncher(SlurmLauncher):
             **{
                 f"{self._EXECUTOR}_{x}": y
                 for x, y in params.items()
-                if x in specific_init_keys
+                if x in specific_init_keys and x not in submitit_smac_launcher_keys
             }
         )
         init_keys = specific_init_keys | {"submitit_folder"}
@@ -47,7 +48,7 @@ class SubmititSmacLauncher(SlurmLauncher):
         params = {
             x if x in baseparams else f"{self._EXECUTOR}_{x}": y
             for x, y in params.items()
-            if x not in init_keys
+            if x not in init_keys and x not in submitit_smac_launcher_keys
         }
         executor.update_parameters(**params)
 
@@ -60,8 +61,9 @@ class SubmititSmacLauncher(SlurmLauncher):
         job_params: List[Any] = []
         for idx, overrides in enumerate(job_overrides):
             idx = initial_job_idx + idx
-            lst = " ".join(filter_overrides(overrides))
-            log.info(f"\t#{idx} : {lst}")
+            if self.params['progress'] == 'basic':
+                lst = " ".join(filter_overrides(overrides))
+                log.info(f"\t#{idx} : {lst}")
             job_params.append(
                 (
                     list(overrides) + self.global_overrides,

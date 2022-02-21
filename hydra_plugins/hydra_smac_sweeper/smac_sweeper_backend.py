@@ -10,7 +10,7 @@ from hydra_plugins.hydra_smac_sweeper.search_space_encoding import \
     search_space_to_config_space
 from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncher
-from hydra_plugins.hydra_smac_sweeper.utils import silence_smac_loggers
+from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 from omegaconf import DictConfig, OmegaConf
 from smac.facade.smac_mf_facade import SMAC4MF
 from smac.scenario.scenario import Scenario
