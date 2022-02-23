@@ -181,7 +181,7 @@ class SubmititRunner(BaseRunner):
         """
         # If there are futures available, it translates
         # to runs still not finished/processed
-        return len(self.futures) > 0
+        return len(self.running_job_info) > 0
 
     def run(
         self, config: Configuration,
