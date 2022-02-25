@@ -1,0 +1,24 @@
+{
+  "hyperparameters": [
+    {
+      "name": "x0",
+      "type": "uniform_float",
+      "log": false,
+      "lower": -512.0,
+      "upper": 512.0,
+      "default": -3.0
+    },
+    {
+      "name": "x1",
+      "type": "uniform_float",
+      "log": true,
+      "lower": 335,
+      "upper": 512.0,
+      "default": 400
+    }
+  ],
+  "conditions": [],
+  "forbiddens": [],
+  "python_module_version": "0.4.17",
+  "json_format_version": 0.2
+}
