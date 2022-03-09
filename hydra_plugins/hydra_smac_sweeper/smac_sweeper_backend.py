@@ -30,6 +30,11 @@ class SMACSweeperBackend(Sweeper):
     ) -> None:
         self.cs = search_space_to_config_space(search_space, seed)
         self.scenario = scenario
+        if intensifier is None:
+            intensifier = {
+                "initial_budget": 1,
+                "max_budget": 1,
+            }
         self.intensifier_kwargs = intensifier
         self.n_jobs = n_jobs
         self.seed = seed
@@ -45,7 +50,7 @@ class SMACSweeperBackend(Sweeper):
     ) -> None:
         self.config = config
         self.hydra_context = hydra_context
-        self.launcher= Plugins.instance().instantiate_launcher(
+        self.launcher = Plugins.instance().instantiate_launcher(
             config=config, hydra_context=hydra_context, task_function=task_function
         )
         self.task_function = task_function
