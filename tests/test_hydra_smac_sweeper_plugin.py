@@ -38,11 +38,6 @@ def create_configspace_a() -> ConfigurationSpace:
     return cs
 
 
-def is_cs_equal(cs0: ConfigurationSpace, cs1: ConfigurationSpace) -> bool:
-    is_equal = False
-    return is_equal
-
-
 @mark.parametrize(
     "input, expected",
     [
@@ -77,7 +72,6 @@ def test_search_space_parsing(input: Union[str, DictConfig], expected: Configura
     assert actual == expected
 
 
-
 # @mark.parametrize(
 #     "input, expected",
 #     [
@@ -98,24 +92,24 @@ def test_search_space_parsing(input: Union[str, DictConfig], expected: Configura
 #     parsed = parser.parse_overrides([input])[0]
 #     actual = _impl.create_optuna_distribution_from_override(parsed)
 #     check_distribution(expected, actual)
-#
-#
-# def test_launch_jobs(hydra_sweep_runner: TSweepRunner) -> None:
-#     sweep = hydra_sweep_runner(
-#         calling_file=None,
-#         calling_module="hydra.test_utils.a_module",
-#         config_path="configs",
-#         config_name="compose.yaml",
-#         task_function=None,
-#         overrides=[
-#             "hydra/sweeper=SMAC",
-#             "hydra/launcher=basic",
-#             "hydra.sweeper.n_trials=8",  # TODO
-#             "hydra.sweeper.n_jobs=3",  # TODO
-#         ],
-#     )
-#     with sweep:
-#         assert sweep.returns is None
+
+
+def test_launch_jobs(hydra_sweep_runner: TSweepRunner) -> None:
+    sweep = hydra_sweep_runner(
+        calling_file=None,
+        calling_module="hydra.test_utils.a_module",
+        config_path="configs",
+        config_name="compose.yaml",
+        task_function=None,
+        overrides=[
+            "hydra/sweeper=SMAC",
+            "hydra/launcher=submitit_smac_slurm",
+            "+hydra.sweeper.scenario.run_obj=quality",
+            "+hydra.sweeper.search_space.hyperparameters={}",
+        ],
+    )
+    with sweep:
+        assert sweep.returns is None
 #
 #
 # @mark.parametrize("with_commandline", (True, False))
