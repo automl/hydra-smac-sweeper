@@ -13,3 +13,4 @@ dependencies:
     - hydra-core
     - smac
     - hydra_colorlog
+    - rich
