@@ -7,6 +7,7 @@ hydra:
     partition: cpu_normal
   sweeper:
     n_jobs: 1
+    seed: 42
     scenario:
       run_obj: quality
       deterministic: true
