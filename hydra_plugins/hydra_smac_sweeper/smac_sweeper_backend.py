@@ -16,6 +16,7 @@ from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 
 from smac.facade.smac_mf_facade import SMAC4MF
 from smac.scenario.scenario import Scenario
+from ConfigSpace import Configuration
 
 log = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ class SMACSweeperBackend(Sweeper):
         self.task_function = task_function
         self.sweep_dir = config.hydra.sweep.dir
 
-    def sweep(self, arguments: List[str]) -> None:
+    def sweep(self, arguments: List[str]) -> Optional[Configuration]:
         assert self.config is not None
         assert self.launcher is not None
         assert self.hydra_context is not None
