@@ -37,6 +37,8 @@ defaults:
 You can also add `hydra/sweeper=SMAC` to your command line.
 
 ## Hyperparameter Search Space
+TODO add info that search space can be json file
+
 SMAC offers to optimize several types of hyperparameters: uniform floats, integers, categoricals
 and can even manage conditions and forbiddens.
 The definition of the hyperparameters is based on [ConfigSpace](https://github.com/automl/ConfigSpace/).

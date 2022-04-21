@@ -56,8 +56,8 @@ class SMACSweeperBackend(Sweeper):
         self.launcher = Plugins.instance().instantiate_launcher(
             config=config, hydra_context=hydra_context, task_function=task_function
         )
-        self.task_function = task_function
-        self.sweep_dir = config.hydra.sweep.dir
+        self.task_function = task_function  # TODO define in init
+        self.sweep_dir = config.hydra.sweep.dir  # TODO define in init
 
     def sweep(self, arguments: List[str]) -> Optional[Configuration]:
         assert self.config is not None
@@ -79,7 +79,7 @@ class SMACSweeperBackend(Sweeper):
                 ),
             )
         )
-        smac = SMAC4MF(
+        smac = SMAC4MF(  # TODO make variable
             scenario=scenario,
             intensifier_kwargs=self.intensifier_kwargs,
             rng=self.rng,
