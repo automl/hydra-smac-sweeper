@@ -72,62 +72,32 @@ def test_search_space_parsing(input: Union[str, DictConfig], expected: Configura
     assert actual == expected
 
 
-def test_launch_jobs(hydra_sweep_runner: TSweepRunner) -> None:
-    sweep = hydra_sweep_runner(
-        calling_file=None,
-        calling_module="hydra.test_utils.a_module",
-        config_path="configs",
-        config_name="compose.yaml",
-        task_function=None,
-        overrides=[
-            "hydra/sweeper=SMAC",
-            "hydra/launcher=submitit_smac_slurm",
-            "+hydra.sweeper.scenario.run_obj=quality",
-            "+hydra.sweeper.search_space.hyperparameters={}",
-        ],
-    )
-    with sweep:
-        assert sweep.returns is None
-#
-#
-# @mark.parametrize("with_commandline", (True, False))
-# def test_optuna_example(with_commandline: bool, tmpdir: Path) -> None:
-#     storage = "sqlite:///" + os.path.join(str(tmpdir), "test.db")
-#     study_name = "test-optuna-example"
-#     cmd = [
-#         "example/sphere.py",
-#         "--multirun",
-#         "hydra.sweep.dir=" + str(tmpdir),
-#         "hydra.job.chdir=True",
-#         "hydra.sweeper.n_trials=20",  # TODO
-#         "hydra.sweeper.n_jobs=1",  # TODO
-#         f"hydra.sweeper.storage={storage}",  # TODO
-#         f"hydra.sweeper.study_name={study_name}",  # TODO
-#         "hydra/sweeper/sampler=tpe",  # TODO
-#         "hydra.sweeper.sampler.seed=123",  # TODO
-#         "~z",
-#     ]
-#     if with_commandline:
-#         cmd += [
-#             "x=choice(0, 1, 2)",
-#             "y=0",  # Fixed parameter
-#         ]
-#     run_python_script(cmd)
-#     returns = OmegaConf.load(f"{tmpdir}/optimization_results.yaml")
-#     study = optuna.load_study(storage=storage, study_name=study_name)
-#     best_trial = study.best_trial
-#     assert isinstance(returns, DictConfig)
-#     assert returns.name == "optuna"
-#     assert returns["best_params"]["x"] == best_trial.params["x"]
-#     if with_commandline:
-#         assert "y" not in returns["best_params"]
-#     else:
-#         assert returns["best_params"]["y"] == best_trial.params["y"]
-#     assert returns["best_value"] == best_trial.value
-#     # Check the search performance of the TPE sampler.
-#     # The threshold is the 95th percentile calculated with 1000 different seed values
-#     # to make the test robust against the detailed implementation of the sampler.
-#     # See https://github.com/facebookresearch/hydra/pull/1746#discussion_r681549830.
-#     assert returns["best_value"] <= 2.27
+@mark.parametrize("with_commandline", (True,))
+def test_smac_example(with_commandline: bool, tmpdir: Path) -> None:
+    study_name = "test-smac-example"
+    cmd = [
+        "examples/branin.py",
+        "hydra.run.dir=" + str(tmpdir),
+        "hydra.sweep.dir=" + str(tmpdir),
+        "hydra.sweeper.scenario.runcount_limit=10",
+        "hydra.sweeper.seed=123",
+        "hydra.launcher.partition=cpu_short",
+        # "hydra/launcher=joblib",
+        # "~hydra.launcher.partition",
+        "--multirun",
+    ]
+    run_python_script(cmd, allow_warnings=True)
+    # returns = OmegaConf.load(f"{tmpdir}/optimization_results.yaml")
+    # study = optuna.load_study(storage=storage, study_name=study_name)
+    # best_trial = study.best_trial
+    # assert isinstance(returns, DictConfig)
+    # assert returns.name == "optuna"
+    # assert returns["best_params"]["x"] == best_trial.params["x"]
+    # assert returns["best_value"] == best_trial.value
+    # # Check the search performance of the TPE sampler.
+    # # The threshold is the 95th percentile calculated with 1000 different seed values
+    # # to make the test robust against the detailed implementation of the sampler.
+    # # See https://github.com/facebookresearch/hydra/pull/1746#discussion_r681549830.
+    # assert returns["best_value"] <= 2.27
 
 
