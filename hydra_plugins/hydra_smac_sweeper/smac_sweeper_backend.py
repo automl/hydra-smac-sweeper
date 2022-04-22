@@ -28,13 +28,13 @@ class SMACSweeperBackend(Sweeper):
         scenario: DictConfig,
         n_jobs: int,
         seed: Optional[int] = None,
-        intensifier: Optional[DictConfig] = None,
+        intensifier_kwargs: Optional[DictConfig] = None,
         budget_variable: Optional[str] = None,
     ) -> None:
         self.cs = search_space_to_config_space(search_space, seed)
         self.scenario = scenario
-        if intensifier is None:
-            intensifier = {
+        if intensifier_kwargs is None and smac_class == "smac.facade.smac_mf_facade.SMAC4MF":
+            intensifier_kwargs = {
                 "initial_budget": 1,
                 "max_budget": 1,
             }
