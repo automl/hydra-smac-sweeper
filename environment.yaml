@@ -14,3 +14,4 @@ dependencies:
     - smac
     - hydra_colorlog
     - rich
+    - hydra-submitit-launcher
