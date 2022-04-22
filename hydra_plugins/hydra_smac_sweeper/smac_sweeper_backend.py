@@ -44,6 +44,9 @@ class SMACSweeperBackend(Sweeper):
         self.budget_variable = budget_variable
         self.rng = np.random.RandomState(self.seed)
 
+        self.task_function: Optional[TaskFunction] = None
+        self.sweep_dir: Optional[str] = None
+
     def setup(
         self,
         *,
@@ -56,8 +59,8 @@ class SMACSweeperBackend(Sweeper):
         self.launcher = Plugins.instance().instantiate_launcher(
             config=config, hydra_context=hydra_context, task_function=task_function
         )
-        self.task_function = task_function  # TODO define in init
-        self.sweep_dir = config.hydra.sweep.dir  # TODO define in init
+        self.task_function = task_function
+        self.sweep_dir = config.hydra.sweep.dir
 
     def sweep(self, arguments: List[str]) -> Optional[Configuration]:
         assert self.config is not None
