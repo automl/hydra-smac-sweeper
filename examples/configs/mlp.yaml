@@ -16,7 +16,7 @@ hydra:
   launcher:
     partition: cpu_normal
   sweeper:
-    budget_variable: max_epochs
+    budget_variable: max_epochs  # TODO adjust MLP example to new interface
     seed: ${seed}
     n_jobs: 4
     scenario:
