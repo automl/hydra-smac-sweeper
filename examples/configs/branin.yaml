@@ -8,7 +8,7 @@ hydra:
   sweeper:
     n_jobs: 4
     seed: 42
-    n_trials: 12
+    n_trials: 36
     smac_class: smac.facade.smac_mf_facade.SMAC4MF
     smac_kwargs:
       scenario:
