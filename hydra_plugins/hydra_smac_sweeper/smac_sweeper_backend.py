@@ -7,6 +7,7 @@ from hydra.core.override_parser.overrides_parser import OverridesParser
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
+from hydra.utils import instantiate, get_class
 
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import \
     search_space_to_config_space
@@ -15,6 +16,7 @@ from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmac
 from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 
 from smac.facade.smac_mf_facade import SMAC4MF
+# import smac
 from smac.scenario.scenario import Scenario
 from ConfigSpace import Configuration
 
@@ -30,7 +32,9 @@ class SMACSweeperBackend(Sweeper):
         seed: Optional[int] = None,
         intensifier_kwargs: Optional[DictConfig] = None,
         budget_variable: Optional[str] = None,
+        smac_class: Optional[str] = None
     ) -> None:
+
         self.cs = search_space_to_config_space(search_space, seed)
         self.scenario = scenario
         if intensifier_kwargs is None and smac_class == "smac.facade.smac_mf_facade.SMAC4MF":
@@ -38,7 +42,11 @@ class SMACSweeperBackend(Sweeper):
                 "initial_budget": 1,
                 "max_budget": 1,
             }
-        self.intensifier_kwargs = intensifier
+        self.intensifier_kwargs = intensifier_kwargs
+        if smac_class is None:
+            smac_class = "smac.facade.smac_ac_facade.SMAC4AC"
+            smac_class = get_class(smac_class)
+        self.smac_class = smac_class
         self.n_jobs = n_jobs
         self.seed = seed
         self.budget_variable = budget_variable
@@ -82,7 +90,7 @@ class SMACSweeperBackend(Sweeper):
                 ),
             )
         )
-        smac = SMAC4MF(  # TODO make variable
+        smac = self.smac_class(
             scenario=scenario,
             intensifier_kwargs=self.intensifier_kwargs,
             rng=self.rng,

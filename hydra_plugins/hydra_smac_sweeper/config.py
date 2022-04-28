@@ -11,6 +11,7 @@ class SMACSweeperConfig:
         "hydra_plugins.hydra_smac_sweeper.smac_sweeper.SMACSweeper"
     )
     search_space: Dict[str, Any] = field(default_factory=dict)
+    smac_class: Optional[str] = None
     scenario: Dict[str, Any] = field(default_factory=dict)
     n_jobs: int = 1
     seed: Optional[int] = None

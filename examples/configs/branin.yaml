@@ -6,16 +6,18 @@ hydra:
   launcher:
     partition: cpu_normal
   sweeper:
-    n_jobs: 1
-    seed: 42
-    scenario:
-      run_obj: quality
-      deterministic: true
-#      wallclock_limit: 60
-      runcount_limit: 50
-    intensifier:
-      initial_budget: 1
-      max_budget: 1
+    smac_class: SMAC4AC
+    smac_kwargs:
+      n_jobs: 1
+      seed: 42
+      scenario:
+        run_obj: quality
+        deterministic: true
+  #      wallclock_limit: 60
+        runcount_limit: 50
+      intensifier:
+        initial_budget: 1
+        max_budget: 1
     search_space:
       hyperparameters:
         x0:
