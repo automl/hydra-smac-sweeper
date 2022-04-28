@@ -36,7 +36,7 @@ class SMACSweeperBackend(Sweeper):
         smac_kwargs: Optional[DictConfig] = None,
         budget_variable: Optional[str] = None,
     ) -> None:
-
+        # TODO document parameters
         self.cs = search_space_to_config_space(search_space, seed)
         self.smac_class = smac_class
         self.smac_kwargs = smac_kwargs
