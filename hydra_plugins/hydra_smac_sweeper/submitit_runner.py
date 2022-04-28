@@ -28,7 +28,7 @@ class SubmititRunner(BaseRunner):
         ta: typing.Callable,
         launcher: SubmititSmacLauncher,
         n_jobs: int,
-        budget_variable: str,
+        budget_variable: typing.Optional[str] = None,
         output_directory: typing.Optional[str] = None,
         **kwargs
     ):
@@ -87,8 +87,9 @@ class SubmititRunner(BaseRunner):
             self.wait()
             self._extract_completed_runs_from_futures()
         overrides = self._diff_overrides(run_info)
-        overrides = [
-            override + (f"{self.budget_variable}={run_info.budget}",) for override in overrides]
+        if self.budget_variable is not None:
+            overrides = [
+                override + (f"{self.budget_variable}={run_info.budget}",) for override in overrides]
         jobs = self.launcher.launch(overrides, self.job_idx)
 
         for i, (override, job) in enumerate(zip(overrides, jobs)):

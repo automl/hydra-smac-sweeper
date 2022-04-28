@@ -16,7 +16,7 @@ class SMACSweeperConfig:
     n_jobs: int = 1
     smac_class: Optional[str] = None
     smac_kwargs: Optional[Dict] = None
-    budget_variable: str = "budget"  # TODO remove budget var
+    budget_variable: Optional[str] = None  # TODO document budget var
 
 
 ConfigStore.instance().store(group="hydra/sweeper",
