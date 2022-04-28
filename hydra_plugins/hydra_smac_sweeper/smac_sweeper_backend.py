@@ -22,33 +22,27 @@ from ConfigSpace import Configuration
 
 log = logging.getLogger(__name__)
 
+OmegaConf.register_new_resolver("get_class", get_class)
+
 
 class SMACSweeperBackend(Sweeper):
     def __init__(
         self,
         search_space: DictConfig,
-        scenario: DictConfig,
+        n_trials: int,
         n_jobs: int,
         seed: Optional[int] = None,
-        intensifier_kwargs: Optional[DictConfig] = None,
+        smac_class: Optional[str] = None,
+        smac_kwargs: Optional[DictConfig] = None,
         budget_variable: Optional[str] = None,
-        smac_class: Optional[str] = None
     ) -> None:
 
         self.cs = search_space_to_config_space(search_space, seed)
-        self.scenario = scenario
-        if intensifier_kwargs is None and smac_class == "smac.facade.smac_mf_facade.SMAC4MF":
-            intensifier_kwargs = {
-                "initial_budget": 1,
-                "max_budget": 1,
-            }
-        self.intensifier_kwargs = intensifier_kwargs
-        if smac_class is None:
-            smac_class = "smac.facade.smac_ac_facade.SMAC4AC"
-            smac_class = get_class(smac_class)
         self.smac_class = smac_class
+        self.smac_kwargs = smac_kwargs
         self.n_jobs = n_jobs
         self.seed = seed
+        self.n_trials = n_trials
         self.budget_variable = budget_variable
         self.rng = np.random.RandomState(self.seed)
 
@@ -74,25 +68,41 @@ class SMACSweeperBackend(Sweeper):
         assert self.config is not None
         assert self.launcher is not None
         assert self.hydra_context is not None
-        
+
         cast(SubmititSmacLauncher, self.launcher).global_overrides = arguments
         log.info(f"Sweep overrides: {' '.join(arguments)}")
 
-        scenario = Scenario(
-            dict(
-                cs=self.cs,
-                output_dir=self.config.hydra.sweep.dir,
-                **cast(
-                    dict,
-                    OmegaConf.to_container(
-                        self.scenario, resolve=True, enum_to_str=True
-                    ),
-                ),
-            )
+        # Select SMAC Facade
+        if self.smac_class is not None:
+            smac_class = get_class(self.smac_class)
+        else:
+            smac_class = "smac.facade.smac_ac_facade.SMAC4AC"
+            smac_class = get_class(smac_class)
+
+        # Setup other SMAC kwargs
+        smac_kwargs = OmegaConf.to_container(
+            self.smac_kwargs, resolve=True, enum_to_str=True
         )
-        smac = self.smac_class(
-            scenario=scenario,
-            intensifier_kwargs=self.intensifier_kwargs,
+
+        # TODO: test with Scenario kwargs provided
+        # TODO: test without Scenario kwargs provided
+        # TODO: test with SMAC class provided
+        # TODO: test without SMAC class provided
+
+        # Instantiate Scenario
+        scenario_kwargs = dict(
+            cs=self.cs,
+            output_dir=self.config.hydra.sweep.dir,
+            ta_run_limit=self.n_trials,
+        )
+        scenario = smac_kwargs.get("scenario", None)
+        if scenario is not None:
+            scenario_kwargs.update(scenario)
+
+        scenario = Scenario(scenario=scenario_kwargs)
+        smac_kwargs["scenario"] = scenario
+
+        smac = smac_class(
             rng=self.rng,
             tae_runner=SubmititRunner,
             tae_runner_kwargs=dict(
@@ -101,6 +111,7 @@ class SMACSweeperBackend(Sweeper):
                 budget_variable=self.budget_variable,
                 ta=self.task_function,
             ),
+            **smac_kwargs
         )
         silence_smac_loggers()
         incumbent = smac.optimize()
