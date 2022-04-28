@@ -76,6 +76,7 @@ class SubmititRunner(BaseRunner):
         Child classes must implement a run() method.
         All results will be only available locally to each worker, so the
         main node needs to collect them.
+
         Parameters
         ----------
         run_info: RunInfo
