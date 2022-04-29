@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 def warn_once(msg: str):
     log.warning(msg)
 
-class InteractiveProgressHandler:
+class RichProgress:
 
     def __init__(self) -> None:
         
@@ -25,7 +25,7 @@ class InteractiveProgressHandler:
         )
         self.idx_to_progress_task_id = {}
         self.started = False
-        self.running_idx = []
+        self.all_running_jobs = {}
 
     def get_progress_task(self, idx):
         
@@ -35,7 +35,6 @@ class InteractiveProgressHandler:
             progress_task_id = self.progress.add_task("", total=1, start=False, job_id=f"#{idx}", status=' ', status_text='')
 
             self.idx_to_progress_task_id[idx] = progress_task_id
-            self.running_idx.append(idx)
 
         return self.progress._tasks[progress_task_id]
 
@@ -50,19 +49,16 @@ class InteractiveProgressHandler:
     def stop_task(self, idx):
         progress_task = self.get_progress_task(idx)
         self.progress.update(progress_task.id, completed=1)
-        self.running_idx.remove(idx)
+        if idx in self.all_running_jobs:
+            del self.all_running_jobs[idx]
 
     def refresh(self, job_idx, jobs, job_overrides):
 
-        num_done = 0
-
-        # for idx in self.running_idx:
-        #     if idx not in job_idx:
-        #         # job is finished 
-        #         self.stop_task(idx)
-        #     pass
-
         for (idx, job, overrides) in zip(job_idx, jobs, job_overrides):
+            if idx not in self.all_running_jobs:
+                self.all_running_jobs[idx] = (idx, job, overrides)
+
+        for (idx, job, overrides) in list(self.all_running_jobs.values()):
             progress_task = self.get_progress_task(idx)
             s = job.state.upper()
 
@@ -73,7 +69,6 @@ class InteractiveProgressHandler:
                 self.progress.start_task(progress_task.id) # start_time is not set to the exact start time because this information not included in slurm job info
 
             if done:
-                num_done += 1
 
                 if not progress_task.finished:
                     # self.progress.update(progress_task.id, completed=1)
@@ -102,8 +97,6 @@ class InteractiveProgressHandler:
             progress_task.fields['status'] = status_icon
             progress_task.fields['status_text'] = s
 
-        return num_done
-
     def loop(self, job_idx, jobs, job_overrides, progress_slurm_refresh_interval = 15, auto_start=True, auto_stop=True, return_first_finished=False):
 
         if progress_slurm_refresh_interval < 15:
@@ -119,7 +112,9 @@ class InteractiveProgressHandler:
             if last_check_delta >= progress_slurm_refresh_interval:
                 jobs[0].get_info(mode="force")
 
-            num_done = self.refresh(job_idx=job_idx, jobs=jobs, job_overrides=job_overrides)
+            self.refresh(job_idx=job_idx, jobs=jobs, job_overrides=job_overrides)
+
+            num_done = sum([1 if job.done()  else 0 for job in jobs])
 
             if return_first_finished and num_done > 0:
                 break

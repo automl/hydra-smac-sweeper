@@ -56,10 +56,10 @@ class SubmititRunner(BaseRunner):
         self.base_cfg_flat = flatten_dict(OmegaConf.to_container(launcher.config, enum_to_str=True))
         self.budget_variable = budget_variable
 
-        if launcher.params['progress'] == 'interactive':
+        if launcher.params['progress'] == 'rich':
             # TODO: add rich to requirements
-            from .utils.progress import InteractiveProgressHandler
-            self.progress_handler = InteractiveProgressHandler()
+            from .utils.rich_progress import RichProgress
+            self.progress_handler = RichProgress()
         else:
             self.progress_handler = None
 
@@ -166,7 +166,7 @@ class SubmititRunner(BaseRunner):
                     job_idx, jobs, job_overrides, 
                     auto_stop=False,
                     progress_slurm_refresh_interval=progress_slurm_refresh_interval,
-                    return_first_finished=False # TODO this is not working currently because jobs can be finished in between
+                    return_first_finished=True
                     )
             else:
                 while True:
