@@ -15,7 +15,7 @@ class SMACSweeperConfig:
     n_jobs: int = 1
     seed: Optional[int] = None
     budget_variable: str = "budget"
-    intensifier: Optional[Dict[str, Any]] = None
+    intensifier_kwargs: Optional[Dict[str, Any]] = None
 
 
 ConfigStore.instance().store(group="hydra/sweeper",

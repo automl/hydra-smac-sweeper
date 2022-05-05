@@ -28,13 +28,13 @@ class SMACSweeperBackend(Sweeper):
         scenario: DictConfig,
         n_jobs: int,
         seed: Optional[int] = None,
-        intensifier: Optional[DictConfig] = None,
+        intensifier_kwargs: Optional[DictConfig] = None,
         budget_variable: Optional[str] = None,
     ) -> None:
         self.cs = search_space_to_config_space(search_space, seed)
         self.scenario = scenario
-        if intensifier is None:
-            intensifier = {
+        if intensifier_kwargs is None and smac_class == "smac.facade.smac_mf_facade.SMAC4MF":
+            intensifier_kwargs = {
                 "initial_budget": 1,
                 "max_budget": 1,
             }
@@ -43,6 +43,9 @@ class SMACSweeperBackend(Sweeper):
         self.seed = seed
         self.budget_variable = budget_variable
         self.rng = np.random.RandomState(self.seed)
+
+        self.task_function: Optional[TaskFunction] = None
+        self.sweep_dir: Optional[str] = None
 
     def setup(
         self,
@@ -56,8 +59,8 @@ class SMACSweeperBackend(Sweeper):
         self.launcher = Plugins.instance().instantiate_launcher(
             config=config, hydra_context=hydra_context, task_function=task_function
         )
-        self.task_function = task_function  # TODO define in init
-        self.sweep_dir = config.hydra.sweep.dir  # TODO define in init
+        self.task_function = task_function
+        self.sweep_dir = config.hydra.sweep.dir
 
     def sweep(self, arguments: List[str]) -> Optional[Configuration]:
         assert self.config is not None
