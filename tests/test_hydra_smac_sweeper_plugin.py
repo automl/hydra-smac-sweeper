@@ -72,6 +72,14 @@ def test_search_space_parsing(input: Union[str, DictConfig], expected: Configura
     assert actual == expected
 
 
+def test_smac_sweeper_args():
+    # TODO: test with Scenario kwargs provided
+    # TODO: test without Scenario kwargs provided
+    # TODO: test with SMAC class provided
+    # TODO: test without SMAC class provided
+    pass
+
+
 @mark.parametrize("with_commandline", (True,))
 def test_smac_example(with_commandline: bool, tmpdir: Path) -> None:
     study_name = "test-smac-example"

@@ -84,11 +84,6 @@ class SMACSweeperBackend(Sweeper):
             self.smac_kwargs, resolve=True, enum_to_str=True
         )
 
-        # TODO: test with Scenario kwargs provided
-        # TODO: test without Scenario kwargs provided
-        # TODO: test with SMAC class provided
-        # TODO: test without SMAC class provided
-
         # Instantiate Scenario
         scenario_kwargs = dict(
             cs=self.cs,
