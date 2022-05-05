@@ -16,20 +16,23 @@ hydra:
   launcher:
     partition: cpu_normal
   sweeper:
-    budget_variable: max_epochs
+    budget_variable: max_epochs  # Tell the SMAC sweeper what the variable controlling the budget is
     seed: ${seed}
     n_jobs: 4
-    scenario:
-      run_obj: quality
-      deterministic: true
-      #      wallclock_limit: 100
-      runcount_limit: 50
-      cutoff: 30 # runtime limit for target algorithm
-      memory_limit: 3072 # adapt this to reasonable value for your hardware
-    intensifier:
-      initial_budget: 5
-      max_budget: ${max_epochs}
-      eta: 3
+    n_trials: 45
+    smac_class: smac.facade.smac_mf_facade.SMAC4MF
+    smac_kwargs:
+      scenario:
+        run_obj: quality
+        deterministic: true
+        #      wallclock_limit: 100
+        cutoff: 30  # runtime limit for target algorithm
+        memory_limit: 3072  # adapt this to reasonable value for your hardware
+      intensifier: ${get_class:smac.intensification.hyperband.Hyperband}
+      intensifier_kwargs:
+          initial_budget: 5  # start with 5 epochs
+          max_budget: ${max_epochs}  # at most 50 epochs
+          eta: 3
     search_space:
       hyperparameters:
         n_layer:

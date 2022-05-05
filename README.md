@@ -8,8 +8,11 @@ Its core consists of Bayesian Optimization in combination with an aggressive rac
 to efficiently decide which of two configurations performs better.
 SMAC is a *minimizer*.
 
-The Hydra SMAC sweeper can parallelize the evaluations of the hyperparameters on slurm.
-The sweeper currently only supports the multi-fidelity facade (`SMAC4MF`). TODO
+The Hydra SMAC sweeper can parallelize the evaluations of the hyperparameters on your
+local machine or on a slurm cluster.
+The sweeper supports every SMAC facade.
+
+- [ ] Add support for submitit local.
 
 ## Installation
 Please clone the repository first:
@@ -153,3 +156,10 @@ hydra:
 ```
 
 TODO: slurm config
+
+
+## Multi-Fidelity Optimization
+BOHB
+TODO: document `budget_variable`.
+
+

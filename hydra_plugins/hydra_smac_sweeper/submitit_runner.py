@@ -28,7 +28,7 @@ class SubmititRunner(BaseRunner):
         ta: typing.Callable,
         launcher: SubmititSmacLauncher,
         n_jobs: int,
-        budget_variable: str,
+        budget_variable: typing.Optional[str] = None,
         output_directory: typing.Optional[str] = None,
         **kwargs
     ):
@@ -56,10 +56,10 @@ class SubmititRunner(BaseRunner):
         self.base_cfg_flat = flatten_dict(OmegaConf.to_container(launcher.config, enum_to_str=True))
         self.budget_variable = budget_variable
 
-        if launcher.params['progress'] == 'interactive':
+        if launcher.params['progress'] == 'rich':
             # TODO: add rich to requirements
-            from .utils.progress import InteractiveProgressHandler
-            self.progress_handler = InteractiveProgressHandler()
+            from .utils.rich_progress import RichProgress
+            self.progress_handler = RichProgress()
         else:
             self.progress_handler = None
 
@@ -76,6 +76,7 @@ class SubmititRunner(BaseRunner):
         Child classes must implement a run() method.
         All results will be only available locally to each worker, so the
         main node needs to collect them.
+
         Parameters
         ----------
         run_info: RunInfo
@@ -87,8 +88,9 @@ class SubmititRunner(BaseRunner):
             self.wait()
             self._extract_completed_runs_from_futures()
         overrides = self._diff_overrides(run_info)
-        overrides = [
-            override + (f"{self.budget_variable}={run_info.budget}",) for override in overrides]
+        if self.budget_variable is not None:
+            overrides = [
+                override + (f"{self.budget_variable}={run_info.budget}",) for override in overrides]
         jobs = self.launcher.launch(overrides, self.job_idx)
 
         for i, (override, job) in enumerate(zip(overrides, jobs)):
@@ -164,7 +166,7 @@ class SubmititRunner(BaseRunner):
                     job_idx, jobs, job_overrides, 
                     auto_stop=False,
                     progress_slurm_refresh_interval=progress_slurm_refresh_interval,
-                    return_first_finished=False # TODO this is not working currently because jobs can be finished in between
+                    return_first_finished=True
                     )
             else:
                 while True:

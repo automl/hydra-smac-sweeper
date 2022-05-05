@@ -11,11 +11,12 @@ class SMACSweeperConfig:
         "hydra_plugins.hydra_smac_sweeper.smac_sweeper.SMACSweeper"
     )
     search_space: Dict[str, Any] = field(default_factory=dict)
-    scenario: Dict[str, Any] = field(default_factory=dict)
-    n_jobs: int = 1
     seed: Optional[int] = None
-    budget_variable: str = "budget"
-    intensifier_kwargs: Optional[Dict[str, Any]] = None
+    n_trials: Optional[int] = None
+    n_jobs: int = 1
+    smac_class: Optional[str] = None
+    smac_kwargs: Optional[Dict] = None
+    budget_variable: Optional[str] = None  # TODO document budget var
 
 
 ConfigStore.instance().store(group="hydra/sweeper",
@@ -28,8 +29,9 @@ class LauncherConfig(SlurmQueueConf):
         "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SubmititSmacLauncher"
     )
 
-    progress: str = "interactive"  # basic, interactive
-    progress_slurm_refresh_interval: int = 2
+    progress: str = "rich"  # possible values: basic, rich
+    progress_slurm_refresh_interval: int = 15 # in seconds
+
 
 ConfigStore.instance().store(
     group="hydra/launcher",
