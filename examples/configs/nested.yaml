@@ -65,11 +65,11 @@ hydra:
         model.activation:
           type: categorical
           choices: [ logistic, tanh, relu ]
-          default_value: ${activation}
+          default_value: ${model.activation}
         optimizer.solver:
           type: categorical
           choices: [ lbfgs, sgd, adam ]
-          default_value: ${solver}
+          default_value: ${optimizer.solver}
         batch_size:
           type: uniform_int
           lower: 30
@@ -78,26 +78,14 @@ hydra:
         optimizer.learning_rate:
           type: categorical
           choices: [ constant, invscaling, adaptive ]
-          default_value: ${learning_rate}
+          default_value: ${optimizer.learning_rate}
         optimizer.learning_rate_init:
           type: uniform_float
           lower: 0.0001
           upper: 1
-          default_value: ${learning_rate_init}
+          default_value: ${optimizer.learning_rate_init}
           log: true
-      conditions:
-        - child: batch_size
-          parent: solver
-          type: IN
-          values: [ sgd, adam ]
-        - child: optimizer.learning_rate
-          parent: solver
-          type: EQ
-          value: sgd
-        - child: optimizer.learning_rate_init
-          parent: solver
-          type: IN
-          values: [ sgd, adam ]
+
 
   run:
     dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}

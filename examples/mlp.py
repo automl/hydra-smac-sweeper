@@ -45,10 +45,6 @@ def mlp_from_cfg(cfg: DictConfig):
     ----------
     cfg: Configuration
         configuration chosen by smac
-    seed: int or RandomState
-        used to initialize the rf's random generator
-    budget: float
-        used to set max iterations for the MLP
 
     Returns
     -------

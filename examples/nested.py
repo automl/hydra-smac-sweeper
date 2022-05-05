@@ -2,6 +2,10 @@
 MLP with Multi-Fidelity
 ^^^^^^^^^^^^^^^^^^^^^^^
 Same as mlp example, except, that nested configs & arrays are supported.
+Importantly, this example is more closely related to nested configurations frequently
+encountered in hydra. Look out for array parameter n_neurons, which describes a
+fixed-layer-sized Neural Network, for which we want to optimize the first two layers'
+number of neurons. This implicates two hyper parameters to be optimized.
 """
 __copyright__ = "Copyright 2022, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
@@ -34,11 +38,7 @@ def mlp_from_cfg(cfg: DictConfig):
     Parameters
     ----------
     cfg: Configuration
-        configuration chosen by smac
-    seed: int or RandomState
-        used to initialize the rf's random generator
-    budget: float
-        used to set max iterations for the MLP
+        configuration chosen by the smac sweeper
 
     Returns
     -------
@@ -50,7 +50,7 @@ def mlp_from_cfg(cfg: DictConfig):
         warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
         mlp = MLPClassifier(
-            hidden_layer_sizes=cfg.model.neuorons,
+            hidden_layer_sizes=cfg.model.n_neurons,
             solver=cfg.optimizer.solver,
             batch_size=cfg.batch_size,
             activation=cfg.model.activation,
