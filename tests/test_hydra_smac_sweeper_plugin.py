@@ -1,8 +1,14 @@
+"""
+Warning: If the tests fail because no slurm output could be written to disk, change the pytest directory,
+e.g. by appending --basetemp=./tmp/pytest to your pytest command.
+"""
 import os
+import glob
 
 from functools import partial
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Dict
+import json
 
 from hydra.core.override_parser.overrides_parser import OverridesParser
 from hydra.core.plugins import Plugins
@@ -18,7 +24,10 @@ from pytest import mark, warns
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper import SMACSweeper
+from hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend import SMACSweeperBackend
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import search_space_to_config_space
+
+from smac.facade.smac_hpo_facade import SMAC4HPO
 
 chdir_plugin_root()
 
@@ -72,40 +81,64 @@ def test_search_space_parsing(input: Union[str, DictConfig], expected: Configura
     assert actual == expected
 
 
-def test_smac_sweeper_args():
+# @mark.parametrize(
+#     "kwargs",
+#     [
+#         DictConfig(
+#             content={
+#                 "smac_class": None,
+#                 "smac_kwargs": None,
+#             }
+#         ),
+#         DictConfig(
+#             content={
+#                 "smac_class": "smac.smac_hpo_facade.SMAC4HPO",
+#                 "smac_kwargs": None,
+#             }
+#         ),
+#     ]
+# )
+# def test_smac_sweeper_args(kwargs: DictConfig):
+    # search_space = search_space_to_config_space("tests/configspace_a.json")
+    # default_kwargs = dict(
+    #     search_space=search_space,
+    #     n_trials=10,
+    #     n_jobs=1,
+    #     seed=333,
+    # )
+    # kwargs.update(default_kwargs)
+    # sweeper = SMACSweeperBackend(**kwargs)
+    # sweeper.config = 1
+    # sweeper.launcher = 1
+    # sweeper.hydra_context = 1
+    # sweeper.sweep()
     # TODO: test with Scenario kwargs provided
     # TODO: test without Scenario kwargs provided
     # TODO: test with SMAC class provided
     # TODO: test without SMAC class provided
-    pass
+    # pass
 
 
 @mark.parametrize("with_commandline", (True,))
 def test_smac_example(with_commandline: bool, tmpdir: Path) -> None:
     study_name = "test-smac-example"
+    print(tmpdir)
     cmd = [
         "examples/branin.py",
         "hydra.run.dir=" + str(tmpdir),
         "hydra.sweep.dir=" + str(tmpdir),
-        "hydra.sweeper.scenario.runcount_limit=10",
+        "hydra.sweeper.n_trials=10",
         "hydra.sweeper.seed=123",
         "hydra.launcher.partition=cpu_short",
-        # "hydra/launcher=joblib",
-        # "~hydra.launcher.partition",
         "--multirun",
     ]
     run_python_script(cmd, allow_warnings=True)
-    # returns = OmegaConf.load(f"{tmpdir}/optimization_results.yaml")
-    # study = optuna.load_study(storage=storage, study_name=study_name)
-    # best_trial = study.best_trial
-    # assert isinstance(returns, DictConfig)
-    # assert returns.name == "optuna"
-    # assert returns["best_params"]["x"] == best_trial.params["x"]
-    # assert returns["best_value"] == best_trial.value
-    # # Check the search performance of the TPE sampler.
-    # # The threshold is the 95th percentile calculated with 1000 different seed values
-    # # to make the test robust against the detailed implementation of the sampler.
-    # # See https://github.com/facebookresearch/hydra/pull/1746#discussion_r681549830.
-    # assert returns["best_value"] <= 2.27
+    smac_dir = glob.glob(os.path.join(tmpdir, "run_*"))[0]
+    traj_fn = os.path.join(smac_dir, "traj.json")
+    with open(traj_fn, "r") as file:
+        lines = file.readlines()
+    trajectory = [json.loads(s) for s in lines]
+    last_cost = trajectory[-1]["cost"]
 
-
+    # 10 trials
+    assert last_cost <= 5.3719
