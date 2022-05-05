@@ -15,7 +15,7 @@ hydra:
         run_obj: quality
         deterministic: true
       intensifier: ${get_class:smac.intensification.hyperband.Hyperband}  # TODO document in docu how to set smac kwargs / caveats
-      intensifier_kwargs:
+      intensifier_kwargs:  # TODO use normal SMAC4AC here
         initial_budget: 1
         max_budget: 1
     search_space:
