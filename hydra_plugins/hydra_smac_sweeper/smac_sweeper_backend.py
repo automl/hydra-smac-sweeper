@@ -22,7 +22,7 @@ from ConfigSpace import Configuration
 
 log = logging.getLogger(__name__)
 
-OmegaConf.register_new_resolver("get_class", get_class)
+OmegaConf.register_new_resolver("get_class", get_class, replace=True)
 
 
 class SMACSweeperBackend(Sweeper):
@@ -64,14 +64,7 @@ class SMACSweeperBackend(Sweeper):
         self.task_function = task_function
         self.sweep_dir = config.hydra.sweep.dir
 
-    def sweep(self, arguments: List[str]) -> Optional[Configuration]:
-        assert self.config is not None
-        assert self.launcher is not None
-        assert self.hydra_context is not None
-
-        cast(SubmititSmacLauncher, self.launcher).global_overrides = arguments
-        log.info(f"Sweep overrides: {' '.join(arguments)}")
-
+    def setup_smac(self):
         # Select SMAC Facade
         if self.smac_class is not None:
             smac_class = get_class(self.smac_class)
@@ -109,6 +102,19 @@ class SMACSweeperBackend(Sweeper):
             **smac_kwargs
         )
         silence_smac_loggers()
+
+        return smac
+
+    def sweep(self, arguments: List[str]) -> Optional[Configuration]:
+        assert self.config is not None
+        assert self.launcher is not None
+        assert self.hydra_context is not None
+
+        cast(SubmititSmacLauncher, self.launcher).global_overrides = arguments
+        log.info(f"Sweep overrides: {' '.join(arguments)}")
+
+        smac = self.setup_smac()
+
         incumbent = smac.optimize()
         smac.solver.stats.print_stats()
         log.info("Final Incumbent: %s", smac.solver.incumbent)
