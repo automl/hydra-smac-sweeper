@@ -101,11 +101,28 @@ class SubmititRunner(BaseRunner):
 
     def _diff_overrides(self, run_info: RunInfo):
         run_info_cfg_flat = flatten_dict(run_info.config.get_dictionary())
-        diff_overrides = [
-            tuple(f"{key}={val1}"
-                  for key, val1 in run_info_cfg_flat.items()
-                  if val1 != self.base_cfg_flat[key])]
-        return diff_overrides
+
+        diff_overrides = []
+        for key, val in run_info_cfg_flat.items():
+            if key in self.base_cfg_flat.keys():
+                if val != self.base_cfg_flat[key]:
+                    diff_overrides.append(f"{key}={val}")
+
+            else:
+                # list valued key?
+                components = [i if not i.isnumeric() else int(i) for i in key.split('.')]
+                key_intermediate = '.'.join(components[:-1])
+                index = components[-1]
+                val1 = self.base_cfg_flat[key_intermediate][index]
+                if val != val1:
+                    diff_overrides.append(f"{key}={val1}")
+
+        # diff_overrides = [
+        #     tuple(f"{key}={val1}"
+        #           for key, val1 in run_info_cfg_flat.items()
+        #           if key in self.base_cfg_flat.keys() and val1 != self.base_cfg_flat[key])]
+
+        return [tuple(diff_overrides)]
 
     def _workers_available(self) -> bool:
         if len(self.running_job_info) < self.n_jobs:
