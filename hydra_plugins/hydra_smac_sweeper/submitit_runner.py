@@ -1,17 +1,18 @@
 import time
 import typing
 
+import pandas as pd
 from hydra.core.utils import JobStatus
 from omegaconf import OmegaConf
-from smac.tae.execute_func import ExecuteTAFuncDict
 from smac.configspace import Configuration
 from smac.runhistory.runhistory import RunInfo, RunValue
 from smac.tae import StatusType
 from smac.tae.base import BaseRunner
+from smac.tae.execute_func import ExecuteTAFuncDict
 from submitit import Job
-import pandas as pd
-from hydra_plugins.hydra_smac_sweeper.utils.job_info import JobInfo
+
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncher
+from hydra_plugins.hydra_smac_sweeper.utils.job_info import JobInfo
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
@@ -24,13 +25,13 @@ def flatten_dict(d):
 class SubmititRunner(BaseRunner):
 
     def __init__(
-        self,
-        ta: typing.Callable,
-        launcher: SubmititSmacLauncher,
-        n_jobs: int,
-        budget_variable: typing.Optional[str] = None,
-        output_directory: typing.Optional[str] = None,
-        **kwargs
+            self,
+            ta: typing.Callable,
+            launcher: SubmititSmacLauncher,
+            n_jobs: int,
+            budget_variable: str,
+            output_directory: typing.Optional[str] = None,
+            **kwargs
     ):
         single_worker = ExecuteTAFuncDict(ta=ta, **kwargs)
         super().__init__(
@@ -102,9 +103,28 @@ class SubmititRunner(BaseRunner):
 
     def _diff_overrides(self, run_info: RunInfo):
         run_info_cfg_flat = flatten_dict(run_info.config.get_dictionary())
-        diff_overrides = [tuple(f"{key}={val1}" for key, val1 in run_info_cfg_flat.items(
-        ) if val1 != self.base_cfg_flat[key])]
-        return diff_overrides
+
+        diff_overrides = []
+        for key, val in run_info_cfg_flat.items():
+            if key in self.base_cfg_flat.keys():
+                if val != self.base_cfg_flat[key]:
+                    diff_overrides.append(f"{key}={val}")
+
+            else:
+                # list valued key?
+                components = [i if not i.isnumeric() else int(i) for i in key.split('.')]
+                key_intermediate = '.'.join(components[:-1])
+                index = components[-1]
+                val1 = self.base_cfg_flat[key_intermediate][index]
+                if val != val1:
+                    diff_overrides.append(f"{key}={val1}")
+
+        # diff_overrides = [
+        #     tuple(f"{key}={val1}"
+        #           for key, val1 in run_info_cfg_flat.items()
+        #           if key in self.base_cfg_flat.keys() and val1 != self.base_cfg_flat[key])]
+
+        return [tuple(diff_overrides)]
 
     def _workers_available(self) -> bool:
         if len(self.running_job_info) < self.n_jobs:
@@ -134,7 +154,8 @@ class SubmititRunner(BaseRunner):
             run_info, job = job_info.run_info, job_info.job
             ret = job.result()
             endtime = time.time()
-            run_value = RunValue(cost=ret.return_value, time=endtime - job._start_time, status=StatusType.SUCCESS if ret.status == JobStatus.COMPLETED else StatusType.CRASHED,
+            run_value = RunValue(cost=ret.return_value, time=endtime - job._start_time,
+                                 status=StatusType.SUCCESS if ret.status == JobStatus.COMPLETED else StatusType.CRASHED,
                                  starttime=job._start_time, endtime=endtime, additional_info=None)
             results_list.append((run_info, run_value))
         return results_list
@@ -160,19 +181,24 @@ class SubmititRunner(BaseRunner):
         if len(self.running_job_info):
 
             if self.progress_handler is not None:
-                progress_slurm_refresh_interval = self.launcher.params['progress_slurm_refresh_interval']
-                job_idx, jobs, job_overrides = zip(* [(j.idx, j.job, j.overrides) for j in self.running_job_info])
+                progress_slurm_refresh_interval = self.launcher.params[
+                    'progress_slurm_refresh_interval']
+                job_idx, jobs, job_overrides = zip(
+                    *[(j.idx, j.job, j.overrides) for j in self.running_job_info])
                 self.progress_handler.loop(
-                    job_idx, jobs, job_overrides, 
+                    job_idx, jobs, job_overrides,
                     auto_stop=False,
                     progress_slurm_refresh_interval=progress_slurm_refresh_interval,
-                    return_first_finished=True
-                    )
+
+                    return_first_finished=False
+                    # TODO this is not working currently because jobs can be finished in between
+                )
+
             else:
                 while True:
                     if any([[f.done() for f in self.running_job_info]]):
                         return
-                    
+
                     time.sleep(1)
 
     def pending_runs(self) -> bool:
@@ -186,12 +212,12 @@ class SubmititRunner(BaseRunner):
         return len(self.running_job_info) > 0
 
     def run(
-        self, config: Configuration,
-        instance: str,
-        cutoff: typing.Optional[float] = None,
-        seed: int = 12345,
-        budget: typing.Optional[float] = None,
-        instance_specific: str = "0",
+            self, config: Configuration,
+            instance: str,
+            cutoff: typing.Optional[float] = None,
+            seed: int = 12345,
+            budget: typing.Optional[float] = None,
+            instance_specific: str = "0",
     ) -> typing.Tuple[StatusType, float, float, typing.Dict]:
         """
         This method only complies with the abstract parent class. In the parallel case,

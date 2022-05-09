@@ -1,0 +1,93 @@
+defaults:
+  - override hydra/sweeper: SMAC
+  - override hydra/launcher: submitit_smac_slurm
+
+# These Parameters are overridden by the sweeper!
+max_epochs: 50
+batch_size: 200
+seed: 42
+
+model:
+  n_neurons:
+    - 30
+    - 20
+    - 10 # notice, that we do not let smac optimize the last layer!
+  activation: tanh
+  alpha: 0.001
+
+optimizer:
+  solver: adam
+  learning_rate: constant
+  learning_rate_init: 0.001
+
+cv:
+  n_splits: 5
+  shuffle: true
+
+
+hydra:
+  launcher:
+    partition: cpu_normal
+
+  sweeper:
+    budget_variable: max_epochs
+    seed: ${seed}
+    n_jobs: 4
+
+    scenario:
+      run_obj: quality
+      deterministic: true
+      #      wallclock_limit: 100
+      runcount_limit: 50
+      cutoff: 30 # runtime limit for target algorithm
+      memory_limit: 3072 # adapt this to reasonable value for your hardware
+
+    intensifier:
+      initial_budget: 5
+      max_budget: ${max_epochs}
+      eta: 3
+
+    search_space:
+      hyperparameters:
+        # Nested references (including array reference)
+        model.n_neurons.0:
+          type: uniform_int
+          lower: 8
+          upper: 1024
+          log: true
+          default_value: ${model.n_neurons.0}
+  #        model.n_neurons.2:
+  #          type: uniform_int
+  #          lower: 8
+  #          upper: 1024
+  #          log: true
+  #          default_value: ${model.n_neurons.2}
+  #        model.activation:
+  #          type: categorical
+  #          choices: [ logistic, tanh, relu ]
+  #          default_value: ${model.activation}
+  #        optimizer.solver:
+  #          type: categorical
+  #          choices: [ lbfgs, sgd, adam ]
+  #          default_value: ${optimizer.solver}
+  #        batch_size:
+  #          type: uniform_int
+  #          lower: 30
+  #          upper: 300
+  #          default_value: ${batch_size}
+  #        optimizer.learning_rate:
+  #          type: categorical
+  #          choices: [ constant, invscaling, adaptive ]
+  #          default_value: ${optimizer.learning_rate}
+  #        optimizer.learning_rate_init:
+  #          type: uniform_float
+  #          lower: 0.0001
+  #          upper: 1
+  #          default_value: ${optimizer.learning_rate_init}
+  #          log: true
+
+
+  run:
+    dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}
