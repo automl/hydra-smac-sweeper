@@ -3,6 +3,7 @@ defaults:
   - override hydra/launcher: submitit_smac_slurm
 
 # These Parameters are overridden by the sweeper!
+epochs: 10
 max_epochs: 50
 batch_size: 200
 seed: 42
@@ -30,7 +31,7 @@ hydra:
     partition: cpu_normal
 
   sweeper:
-    budget_variable: max_epochs
+    budget_variable: epochs
     seed: ${seed}
     n_jobs: 4
 

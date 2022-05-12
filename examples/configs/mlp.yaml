@@ -9,14 +9,17 @@ n_neurons: 10
 n_layer: 1
 solver: adam
 activation: tanh
-max_epochs: 50
 seed: 42
+
+epochs: 10
+max_epochs: 50 # Smac's Multi-fidelity maximum value for the budget_variable
 
 hydra:
   launcher:
     partition: cpu_normal
   sweeper:
-    budget_variable: max_epochs  # Tell the SMAC sweeper what the variable controlling the budget is
+    budget_variable: epochs  # string! telling the sweeper the name of the budget variable,
+    # such that it can override it (as it does in the Multi-fidelity setup)!
     seed: ${seed}
     n_jobs: 4
     n_trials: 45
@@ -30,9 +33,9 @@ hydra:
         memory_limit: 3072  # adapt this to reasonable value for your hardware
       intensifier: ${get_class:smac.intensification.hyperband.Hyperband}
       intensifier_kwargs:
-          initial_budget: 5  # start with 5 epochs
-          max_budget: ${max_epochs}  # at most 50 epochs
-          eta: 3
+        initial_budget: 5  # start with 5 epochs
+        max_budget: ${max_epochs}  # at most 50 epochs
+        eta: 3
     search_space:
       hyperparameters:
         n_layer:
@@ -48,11 +51,11 @@ hydra:
           default_value: ${n_neurons}
         activation:
           type: categorical
-          choices: [logistic, tanh, relu]
+          choices: [ logistic, tanh, relu ]
           default_value: ${activation}
         solver:
           type: categorical
-          choices: [lbfgs, sgd, adam]
+          choices: [ lbfgs, sgd, adam ]
           default_value: ${solver}
         batch_size:
           type: uniform_int
@@ -61,7 +64,7 @@ hydra:
           default_value: ${batch_size}
         learning_rate:
           type: categorical
-          choices: [constant, invscaling, adaptive]
+          choices: [ constant, invscaling, adaptive ]
           default_value: ${learning_rate}
         learning_rate_init:
           type: uniform_float
@@ -73,7 +76,7 @@ hydra:
         - child: batch_size
           parent: solver
           type: IN
-          values: [sgd, adam]
+          values: [ sgd, adam ]
         - child: learning_rate
           parent: solver
           type: EQ
@@ -81,7 +84,7 @@ hydra:
         - child: learning_rate_init
           parent: solver
           type: IN
-          values: [sgd, adam]
+          values: [ sgd, adam ]
 
   run:
     dir: ./tmp/${now:%Y-%m-%d}/${now:%H-%M-%S}

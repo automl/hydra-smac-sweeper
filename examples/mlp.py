@@ -31,7 +31,6 @@ from sklearn.neural_network import MLPClassifier
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-
 digits = load_digits()
 
 
@@ -68,7 +67,7 @@ def mlp_from_cfg(cfg: DictConfig):
             activation=cfg.activation,
             learning_rate=lr,
             learning_rate_init=lr_init,
-            max_iter=int(np.ceil(cfg.max_epochs)),
+            max_iter=int(np.ceil(cfg.epochs)),
             random_state=cfg.seed,
         )
 
