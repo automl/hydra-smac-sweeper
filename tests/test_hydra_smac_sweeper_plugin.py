@@ -26,6 +26,7 @@ from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper import SMACSweeper
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend import SMACSweeperBackend
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import search_space_to_config_space
+from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
 
 from smac.facade.smac_hpo_facade import SMAC4HPO
 
@@ -81,37 +82,45 @@ def test_search_space_parsing(input: Union[str, DictConfig], expected: Configura
     assert actual == expected
 
 
-# @mark.parametrize(
-#     "kwargs",
-#     [
-#         DictConfig(
-#             content={
-#                 "smac_class": None,
-#                 "smac_kwargs": None,
-#             }
-#         ),
-#         DictConfig(
-#             content={
-#                 "smac_class": "smac.smac_hpo_facade.SMAC4HPO",
-#                 "smac_kwargs": None,
-#             }
-#         ),
-#     ]
-# )
-# def test_smac_sweeper_args(kwargs: DictConfig):
-    # search_space = search_space_to_config_space("tests/configspace_a.json")
-    # default_kwargs = dict(
-    #     search_space=search_space,
-    #     n_trials=10,
-    #     n_jobs=1,
-    #     seed=333,
-    # )
-    # kwargs.update(default_kwargs)
-    # sweeper = SMACSweeperBackend(**kwargs)
-    # sweeper.config = 1
-    # sweeper.launcher = 1
-    # sweeper.hydra_context = 1
-    # sweeper.sweep()
+@mark.parametrize(
+    "kwargs",
+    [
+        DictConfig(
+            content={
+                "smac_class": None,
+                "smac_kwargs": None,
+                # "hydra": {
+                #     "sweep": {
+                #         "dir": "./tmp"
+                #     }
+                # }
+            }
+        ),
+        DictConfig(
+            content={
+                "smac_class": "smac.facade.smac_hpo_facade.SMAC4HPO",
+                "smac_kwargs": None,
+            }
+        ),
+    ]
+)
+def test_smac_sweeper_args(kwargs: DictConfig):
+    # kwargs = OmegaConf.to_container(cfg=kwargs, resolve=True)
+    search_space = search_space_to_config_space("tests/configspace_a.json")
+    search_space = "tests/configspace_a.json"
+    default_kwargs = dict(
+        search_space=search_space,
+        n_trials=10,
+        n_jobs=1,
+        seed=333,
+    )
+    kwargs.update(default_kwargs)
+    # kwargs = OmegaConf.create(kwargs)
+    sweeper = SMACSweeperBackend(**kwargs)
+    sweeper.config = kwargs
+    sweeper.launcher = SMACLocalLauncher()
+    sweeper.hydra_context = 1
+    sweeper.sweep(arguments=[])
     # TODO: test with Scenario kwargs provided
     # TODO: test without Scenario kwargs provided
     # TODO: test with SMAC class provided
@@ -129,7 +138,8 @@ def test_smac_example(with_commandline: bool, tmpdir: Path) -> None:
         "hydra.sweep.dir=" + str(tmpdir),
         "hydra.sweeper.n_trials=10",
         "hydra.sweeper.seed=123",
-        "hydra.launcher.partition=cpu_short",
+        "+hydra/launcher=submitit_smac_local",
+        "hydra.sweeper.n_jobs=1",
         "--multirun",
     ]
     run_python_script(cmd, allow_warnings=True)
