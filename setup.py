@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
     setup(
         name="hydra-smac-sweeper",
-        version="1.0.0",
+        version="0.1.0",
         author="",
         author_email="",
         description="Hydra SMAC Sweeper Plugin",
@@ -29,6 +29,11 @@ with open("README.md", "r") as fh:
             # if a new major version of Hydra introduces breaking changes for plugins.
             # e.g: "hydra-core==1.0.*",
             "hydra-core",
+            "smac<2.*.*",
+            "rich",
+            "hydra_colorlog",
+            "hydra-submitit-launcher",
+            "pandas",
         ],
         # If this plugin is providing configuration files, be sure to include them in the package.
         # See MANIFEST.in.
