@@ -29,12 +29,17 @@ with open("README.md", "r") as fh:
             # if a new major version of Hydra introduces breaking changes for plugins.
             # e.g: "hydra-core==1.0.*",
             "hydra-core",
-            "smac<2.*.*",
+            "smac<2.0.0",
             "rich",
             "hydra_colorlog",
             "hydra-submitit-launcher",
             "pandas",
         ],
+        extras_require={
+            "dev": [
+                "pytest"
+            ]
+        },
         # If this plugin is providing configuration files, be sure to include them in the package.
         # See MANIFEST.in.
         # For configurations to be discoverable at runtime, they should also be added to the search path.
