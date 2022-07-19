@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Literal, Optional
 
 from hydra.core.config_store import ConfigStore
-from hydra_plugins.hydra_submitit_launcher.config import SlurmQueueConf
+from hydra_plugins.hydra_submitit_launcher.config import BaseQueueConf, SlurmQueueConf, LocalQueueConf
 
 
 @dataclass
@@ -24,18 +24,36 @@ ConfigStore.instance().store(group="hydra/sweeper",
 
 
 @dataclass
-class LauncherConfig(SlurmQueueConf):
-    _target_: str = (
-        "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SubmititSmacLauncher"
-    )
-
+class LauncherConfigMixin(BaseQueueConf):
     progress: str = "rich"  # possible values: basic, rich
     progress_slurm_refresh_interval: int = 15 # in seconds
+
+
+@dataclass
+class SlurmLauncherConfig(LauncherConfigMixin, SlurmQueueConf):
+    _target_: str = (
+        "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SMACSlurmLauncher"
+    )
 
 
 ConfigStore.instance().store(
     group="hydra/launcher",
     name="submitit_smac_slurm",
-    node=LauncherConfig(),
+    node=SlurmLauncherConfig(),
+    provider="hydra_smac_sweeper",
+)
+
+
+@dataclass
+class LocalLauncherConfig(LauncherConfigMixin, LocalQueueConf):
+    _target_: str = (
+        "hydra_plugins.hydra_submitit_launcher.submitit_launcher.SMACLocalLauncher"
+    )
+
+
+ConfigStore.instance().store(
+    group="hydra/launcher",
+    name="submitit_smac_local",
+    node=LocalLauncherConfig(),
     provider="hydra_smac_sweeper",
 )

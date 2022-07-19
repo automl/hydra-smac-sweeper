@@ -12,7 +12,7 @@ from hydra.utils import instantiate, get_class
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import \
     search_space_to_config_space
 from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
-from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncher
+from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncherMixin
 from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 
 from smac.facade.smac_mf_facade import SMAC4MF
@@ -110,7 +110,7 @@ class SMACSweeperBackend(Sweeper):
         assert self.launcher is not None
         assert self.hydra_context is not None
 
-        cast(SubmititSmacLauncher, self.launcher).global_overrides = arguments
+        cast(SubmititSmacLauncherMixin, self.launcher).global_overrides = arguments
         log.info(f"Sweep overrides: {' '.join(arguments)}")
 
         smac = self.setup_smac()

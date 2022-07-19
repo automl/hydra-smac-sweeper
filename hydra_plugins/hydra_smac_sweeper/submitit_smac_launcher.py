@@ -8,13 +8,13 @@ from hydra.core.utils import JobReturn, filter_overrides
 from omegaconf import OmegaConf
 
 from hydra_plugins.hydra_submitit_launcher.config import BaseQueueConf
-from hydra_plugins.hydra_submitit_launcher.submitit_launcher import SlurmLauncher
+from hydra_plugins.hydra_submitit_launcher.submitit_launcher import SlurmLauncher, LocalLauncher, BaseSubmititLauncher
 from submitit import Job
 
 log = logging.getLogger(__name__)
 
 
-class SubmititSmacLauncher(SlurmLauncher):
+class SubmititSmacLauncherMixin(BaseSubmititLauncher):
     global_overrides: List[str] = []
 
     def launch(
@@ -76,3 +76,11 @@ class SubmititSmacLauncher(SlurmLauncher):
 
         jobs = executor.map_array(self, *zip(*job_params))
         return jobs
+
+
+class SMACSlurmLauncher(SubmititSmacLauncherMixin, SlurmLauncher):
+    pass
+
+
+class SMACLocalLauncher(SubmititSmacLauncherMixin, LocalLauncher):
+    pass
