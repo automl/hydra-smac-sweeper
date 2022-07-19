@@ -28,7 +28,7 @@ class JSONCfgEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Optional[int] = None) -> ConfigurationSpace:
+def search_space_to_config_space(search_space: Union[str, DictConfig, ConfigurationSpace], seed: Optional[int] = None) -> ConfigurationSpace:
     """
     Convert hydra search space to SMAC's configuration space.
 
@@ -49,9 +49,10 @@ def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Opt
 
     Parameters
     ----------
-    search_space : Union[str, DictConfig]
+    search_space : Union[str, DictConfig, ConfigurationSpace]
         The search space, either a DictConfig from a hydra yaml config file, or a path to a json configuration space
         file in the format required of ConfigSpace.
+        If it already is a ConfigurationSpace, just optionally seed it.
     seed : Optional[int]
         Optional seed to seed configuration space.
 
@@ -90,6 +91,7 @@ def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Opt
     if type(search_space) == str:
         with open(search_space, 'r') as f:
             jason_string = f.read()
+        cs = csjson.read(jason_string)
     elif type(search_space) == DictConfig:
         # reorder hyperparameters as List[Dict]
         hyperparameters = []
@@ -108,10 +110,13 @@ def search_space_to_config_space(search_space: Union[str, DictConfig], seed: Opt
         if "forbiddens" not in search_space:
             search_space["forbiddens"] = []
         
-
         jason_string = json.dumps(search_space, cls=JSONCfgEncoder)
+        cs = csjson.read(jason_string)
+    elif type(search_space) == ConfigurationSpace:
+        cs = search_space
+    else:
+        raise ValueError(f"search_space must be of type str or DictConfig. Got {type(search_space)}.")
 
-    cs = csjson.read(jason_string)
     if seed is not None:
         cs.seed(seed=seed)
     return cs
