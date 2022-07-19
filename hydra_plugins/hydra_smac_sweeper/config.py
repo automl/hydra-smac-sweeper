@@ -47,7 +47,7 @@ ConfigStore.instance().store(
 @dataclass
 class LocalLauncherConfig(LauncherConfigMixin, LocalQueueConf):
     _target_: str = (
-        "hydra_plugins.hydra_submitit_launcher.submitit_launcher.SMACLocalLauncher"
+        "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SMACLocalLauncher"
     )
 
 
