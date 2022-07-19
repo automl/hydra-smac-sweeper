@@ -18,7 +18,7 @@ from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 from smac.facade.smac_mf_facade import SMAC4MF
 # import smac
 from smac.scenario.scenario import Scenario
-from ConfigSpace import Configuration
+from smac.configspace import Configuration, ConfigurationSpace
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +37,8 @@ class SMACSweeperBackend(Sweeper):
         budget_variable: Optional[str] = None,
     ) -> None:
         # TODO document parameters
-        self.cs = search_space_to_config_space(search_space, seed)
+        self.configspace: Optional[ConfigurationSpace] = None
+        self.search_space = search_space
         self.smac_class = smac_class
         self.smac_kwargs = smac_kwargs
         self.n_jobs = n_jobs
@@ -73,13 +74,17 @@ class SMACSweeperBackend(Sweeper):
             smac_class = get_class(smac_class)
 
         # Setup other SMAC kwargs
-        smac_kwargs = OmegaConf.to_container(
-            self.smac_kwargs, resolve=True, enum_to_str=True
-        )
+        smac_kwargs = {}
+        if self.smac_kwargs is not None:
+            smac_kwargs = OmegaConf.to_container(
+                self.smac_kwargs, resolve=True, enum_to_str=True
+            )
 
         # Instantiate Scenario
+        if self.configspace is None:
+            self.configspace = search_space_to_config_space(search_space=self.search_space, seed=self.seed)
         scenario_kwargs = dict(
-            cs=self.cs,
+            cs=self.configspace,
             output_dir=self.config.hydra.sweep.dir,
             ta_run_limit=self.n_trials,
         )
