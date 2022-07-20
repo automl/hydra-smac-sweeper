@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, cast
 
 import logging
+from rich import print as printr
 
 import numpy as np
 from hydra.core.plugins import Plugins
@@ -180,6 +181,9 @@ class SMACSweeperBackend(Sweeper):
         assert self.config is not None
         assert self.launcher is not None
         assert self.hydra_context is not None
+
+        printr("Config", self.config)
+        printr("Hydra context", self.hydra_context)
 
         cast(SubmititSmacLauncherMixin, self.launcher).global_overrides = arguments
         log.info(f"Sweep overrides: {' '.join(arguments)}")
