@@ -85,6 +85,9 @@ class SubmititRunner(BaseRunner):
         self.base_cfg_flat = flatten_dict(OmegaConf.to_container(launcher.config, enum_to_str=True))
         self.budget_variable = budget_variable
 
+        # TODO don't hardcode
+        if "progress" not in launcher.params:
+            launcher.params["progress"] = "rich"
         if launcher.params["progress"] == "rich":
             # TODO: add rich to requirements
             from .utils.rich_progress import RichProgress
@@ -92,6 +95,7 @@ class SubmititRunner(BaseRunner):
             self.progress_handler = RichProgress()
         else:
             self.progress_handler = None
+        del launcher.params["progress"]
 
     def submit_run(self, run_info: RunInfo) -> None:
         """
