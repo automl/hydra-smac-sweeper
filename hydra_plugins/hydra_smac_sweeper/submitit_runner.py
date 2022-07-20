@@ -14,7 +14,6 @@ from smac.runhistory.runhistory import RunInfo, RunValue
 from smac.tae import StatusType
 from smac.tae.base import BaseRunner
 from smac.tae.execute_func import ExecuteTAFuncDict
-from submitit import Job
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"

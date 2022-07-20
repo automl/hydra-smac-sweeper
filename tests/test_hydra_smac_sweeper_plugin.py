@@ -2,25 +2,19 @@
 Warning: If the tests fail because no slurm output could be written to disk, change the pytest directory,
 e.g. by appending --basetemp=./tmp/pytest to your pytest command.
 """
-from typing import Any, Dict, List, Optional, Union
+from typing import Union
 
 import glob
 import json
 import os
-from functools import partial
 from pathlib import Path
 
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 from examples.branin import branin
-from hydra.core.override_parser.overrides_parser import OverridesParser
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
-from hydra.test_utils.test_utils import (
-    TSweepRunner,
-    chdir_plugin_root,
-    run_python_script,
-)
-from hydra.utils import get_class, instantiate
+from hydra.test_utils.test_utils import chdir_plugin_root, run_python_script
+from hydra.utils import get_class
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
     search_space_to_config_space,
 )
@@ -28,9 +22,8 @@ from hydra_plugins.hydra_smac_sweeper.smac_sweeper import SMACSweeper
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend import SMACSweeperBackend
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
 from omegaconf import DictConfig, OmegaConf
-from pytest import mark, warns
+from pytest import mark
 from smac.facade.smac_ac_facade import SMAC4AC
-from smac.facade.smac_hpo_facade import SMAC4HPO
 
 chdir_plugin_root()
 
@@ -107,7 +100,7 @@ def test_search_space_parsing(input: Union[str, DictConfig], expected: Configura
 def test_search_space_parsing_value_error() -> None:
     some_list = list()
     try:
-        cs = search_space_to_config_space(some_list)
+        _ = search_space_to_config_space(some_list)
         assert False
     except ValueError:
         assert True
@@ -173,7 +166,6 @@ def test_smac_sweeper_args(kwargs: DictConfig):
 
 @mark.parametrize("with_commandline", (True,))
 def test_smac_example(with_commandline: bool, tmpdir: Path) -> None:
-    study_name = "test-smac-example"
     print(tmpdir)
     cmd = [
         "examples/branin.py",

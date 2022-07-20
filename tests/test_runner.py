@@ -1,28 +1,19 @@
 # Add below as a WA for
 # https://github.com/dask/distributed/issues/4168
 import multiprocessing.popen_spawn_posix  # noqa
-import os
-import tempfile
 import time
-import unittest
 import unittest.mock
 from unittest.mock import patch
 
 import dask  # noqa
-from dask.distributed import Client
 from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
 from omegaconf import DictConfig, OmegaConf
-from smac.configspace import (
-    Configuration,
-    ConfigurationSpace,
-    UniformFloatHyperparameter,
-)
+from smac.configspace import ConfigurationSpace, UniformFloatHyperparameter
 from smac.runhistory.runhistory import RunInfo, RunValue
 from smac.scenario.scenario import Scenario
 from smac.stats.stats import Stats
 from smac.tae import StatusType
-from smac.tae.execute_func import ExecuteTAFuncDict
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"

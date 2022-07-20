@@ -1,10 +1,10 @@
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import json
 
 from ConfigSpace import ConfigurationSpace
 from ConfigSpace.read_and_write import json as csjson
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import DictConfig, ListConfig
 
 
 class JSONCfgEncoder(json.JSONEncoder):

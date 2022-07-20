@@ -3,7 +3,7 @@ import time
 from functools import lru_cache
 
 from hydra.core.utils import JobStatus, filter_overrides
-from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
+from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
 
 log = logging.getLogger(__name__)
 
@@ -69,9 +69,10 @@ class RichProgress:
             done = job.done()
 
             if (s == "RUNNING" or done) and not progress_task.started:
+                # start_time is not set to the exact start time because this information not included in slurm job info
                 self.progress.start_task(
                     progress_task.id
-                )  # start_time is not set to the exact start time because this information not included in slurm job info
+                )
 
             if done:
 
@@ -90,7 +91,8 @@ class RichProgress:
                     elif hydra_status == JobStatus.FAILED:
                         s = "FAILED"  # 💥
                         status_icon = "💥"
-                except:
+                except Exception as e:
+                    print(e)  # TODO check which exception can happen here
                     s = "FAILED"  # 💥
                     status_icon = "💥"
 
@@ -115,7 +117,8 @@ class RichProgress:
 
         if progress_slurm_refresh_interval < 15:
             warn_once(
-                "WARNING: progress_slurm_refresh_interval should not be smaller than 15 seconds otherwise slurm will be queried too often"
+                "WARNING: progress_slurm_refresh_interval should not be smaller than 15 seconds otherwise "
+                "slurm will be queried too often."
             )
 
         if auto_start:

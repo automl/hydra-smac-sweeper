@@ -7,13 +7,7 @@ encountered in hydra. Look out for array parameter n_neurons, which describes a
 fixed-layer-sized Neural Network, for which we want to optimize the first two layers'
 number of neurons. This implicates two hyper parameters to be optimized.
 """
-__copyright__ = "Copyright 2022, AutoML.org Freiburg-Hannover"
-__license__ = "3-clause BSD"
-
 import logging
-
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
 
 import warnings
 import numpy as np
@@ -25,6 +19,12 @@ from sklearn.neural_network import MLPClassifier
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
+
+__copyright__ = "Copyright 2022, AutoML.org Freiburg-Hannover"
+__license__ = "3-clause BSD"
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 digits = load_digits()
 

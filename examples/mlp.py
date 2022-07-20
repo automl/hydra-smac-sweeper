@@ -17,9 +17,6 @@ __license__ = "3-clause BSD"
 
 import logging
 
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
-
 import warnings
 import numpy as np
 
@@ -30,6 +27,9 @@ from sklearn.neural_network import MLPClassifier
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 digits = load_digits()
 
