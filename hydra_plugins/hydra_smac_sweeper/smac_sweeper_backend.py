@@ -19,6 +19,7 @@ from smac.facade.smac_mf_facade import SMAC4MF
 # import smac
 from smac.scenario.scenario import Scenario
 from smac.configspace import Configuration, ConfigurationSpace
+from smac.stats.stats import Stats
 
 log = logging.getLogger(__name__)
 
@@ -103,6 +104,7 @@ class SMACSweeperBackend(Sweeper):
                 launcher=self.launcher,
                 budget_variable=self.budget_variable,
                 ta=self.task_function,
+                stats=Stats(scenario=scenario)
             ),
             **smac_kwargs
         )
