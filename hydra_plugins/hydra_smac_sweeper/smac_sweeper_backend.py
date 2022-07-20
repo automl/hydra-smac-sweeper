@@ -1,4 +1,6 @@
-from typing import List, Optional, cast
+from __future__ import annotations
+
+from typing import List, cast
 
 import logging
 
@@ -17,6 +19,7 @@ from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
 from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 from omegaconf import DictConfig, OmegaConf
 from smac.configspace import Configuration, ConfigurationSpace
+from smac.facade.smac_ac_facade import SMAC4AC
 from smac.scenario.scenario import Scenario
 from smac.stats.stats import Stats
 
@@ -28,16 +31,41 @@ OmegaConf.register_new_resolver("get_class", get_class, replace=True)
 class SMACSweeperBackend(Sweeper):
     def __init__(
         self,
-        search_space: DictConfig,
+        search_space: DictConfig | str | ConfigurationSpace,
         n_trials: int,
         n_jobs: int,
-        seed: Optional[int] = None,
-        smac_class: Optional[str] = None,
-        smac_kwargs: Optional[DictConfig] = None,
-        budget_variable: Optional[str] = None,
+        seed: int | None = None,
+        smac_class: str | None = None,
+        smac_kwargs: DictConfig | None = None,
+        budget_variable: str | None = None,
     ) -> None:
-        # TODO document parameters
-        self.configspace: Optional[ConfigurationSpace] = None
+        """
+        Backend for the SMAC sweeper. Instantiate and launch SMAC's optimization.
+
+        Parameters
+        ----------
+        search_space: DictConfig | str | ConfigurationSpace
+            The search space, either a DictConfig from a hydra yaml config file, or a path to a json configuration space
+            file in the format required of ConfigSpace, or already a ConfigurationSpace config space.
+        n_trials: int
+            Number of evaluations of the target algorithm.
+        n_jobs: int
+            Number of parallel jobs / workers.
+        seed: int | None
+            Seed for instantiating the random generator and seeding the configuration space.
+        smac_class: str | None
+            Optional string defining the smac class, e.g. "smac.facade.smac_ac_facade.SMAC4AC".
+        smac_kwargs: DictConfig | None
+            Kwargs for the smac class from the yaml config file.
+        budget_variable: str | None
+            Name of the variable controlling the budget, e.g. max_epochs. Only relevant for multi-fidelity methods.
+
+        Returns
+        -------
+        None
+
+        """
+        self.configspace: ConfigurationSpace | None = None
         self.search_space = search_space
         self.smac_class = smac_class
         self.smac_kwargs = smac_kwargs
@@ -47,8 +75,8 @@ class SMACSweeperBackend(Sweeper):
         self.budget_variable = budget_variable
         self.rng = np.random.RandomState(self.seed)
 
-        self.task_function: Optional[TaskFunction] = None
-        self.sweep_dir: Optional[str] = None
+        self.task_function: TaskFunction | None = None
+        self.sweep_dir: str | None = None
 
     def setup(
         self,
@@ -57,6 +85,20 @@ class SMACSweeperBackend(Sweeper):
         task_function: TaskFunction,
         config: DictConfig,
     ) -> None:
+        """
+        Setup launcher.
+
+        Parameters
+        ----------
+        hydra_context: HydraContext
+        task_function: TaskFunction
+        config: DictConfig
+
+        Returns
+        -------
+        None
+
+        """
         self.config = config
         self.hydra_context = hydra_context
         self.launcher = Plugins.instance().instantiate_launcher(
@@ -65,7 +107,18 @@ class SMACSweeperBackend(Sweeper):
         self.task_function = task_function
         self.sweep_dir = config.hydra.sweep.dir
 
-    def setup_smac(self):
+    def setup_smac(self) -> SMAC4AC:
+        """
+        Setup SMAC.
+
+        Retrieve defaults and instantiate SMAC.
+
+        Returns
+        -------
+        SMAC4AC
+            Instance of a SMAC facade.
+
+        """
         # Select SMAC Facade
         if self.smac_class is not None:
             smac_class = get_class(self.smac_class)
@@ -109,7 +162,21 @@ class SMACSweeperBackend(Sweeper):
 
         return smac
 
-    def sweep(self, arguments: List[str]) -> Optional[Configuration]:
+    def sweep(self, arguments: List[str]) -> Configuration | None:
+        """
+        Run optimization with SMAC.
+
+        Parameters
+        ----------
+        arguments: List[str]
+            Hydra overrides for the sweep.
+
+        Returns
+        -------
+        Configuration | None
+            Incumbent (best) configuration.
+
+        """
         assert self.config is not None
         assert self.launcher is not None
         assert self.hydra_context is not None

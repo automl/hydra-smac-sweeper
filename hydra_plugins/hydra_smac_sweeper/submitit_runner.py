@@ -1,11 +1,14 @@
-import typing
+from __future__ import annotations
+
+from typing import Any, Callable, Dict, List, Tuple
 
 import time
 
 import pandas as pd
 from hydra.core.utils import JobStatus
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
-    SubmititSmacLauncherMixin,
+    SMACLocalLauncher,
+    SMACSlurmLauncher,
 )
 from hydra_plugins.hydra_smac_sweeper.utils.job_info import JobInfo
 from omegaconf import OmegaConf
@@ -26,13 +29,38 @@ def flatten_dict(d):
 class SubmititRunner(BaseRunner):
     def __init__(
         self,
-        ta: typing.Callable,
-        launcher: SubmititSmacLauncherMixin,
+        ta: Callable,
+        launcher: SMACLocalLauncher | SMACSlurmLauncher,
         n_jobs: int,
-        budget_variable: str,
-        output_directory: typing.Optional[str] = None,
-        **kwargs,
-    ):
+        budget_variable: str | None,
+        output_directory: str | None = None,
+        **kwargs: Dict[Any, Any],
+    ) -> None:
+        """
+        Interface class to handle the execution of SMAC' configurations via submitit.
+
+
+        Parameters
+        ----------
+        ta: Callable
+            Target algorithm (the method we want to optimize) as a callable. Must receive
+            as an argument a omegaconf.DictConfig.
+        launcher: SMACLocalLauncher | SMACSlurmLauncher
+            Launches the jobs, either locally (SMACLocalLauncher) or on a slurm cluster (SMACSlurmLauncher).
+        n_jobs: int
+            Number of parallel jobs/workers.
+        budget_variable: str | None
+            Name of the variable controlling the budget, e.g. max_epochs. Only relevant for multi-fidelity methods.
+        output_directory: str | None
+            Path to output directory. Not used right now.  # TODO check why we have output directory here
+        kwargs: Dict[Any, Any]
+            Kwargs for smac.tae.execute_func.ExecuteTAFuncDict.
+
+        Returns
+        -------
+        None
+
+        """
         single_worker = ExecuteTAFuncDict(ta=ta, **kwargs)
         super().__init__(
             ta=single_worker.ta,
@@ -53,7 +81,7 @@ class SubmititRunner(BaseRunner):
         self.n_jobs = n_jobs
         self.job_idx = 0
         self.running_job_info = []
-        self.results: typing.List[JobInfo] = []
+        self.results: List[JobInfo] = []
         self.base_cfg_flat = flatten_dict(OmegaConf.to_container(launcher.config, enum_to_str=True))
         self.budget_variable = budget_variable
 
@@ -66,7 +94,10 @@ class SubmititRunner(BaseRunner):
             self.progress_handler = None
 
     def submit_run(self, run_info: RunInfo) -> None:
-        """This function submits a configuration
+        """
+        Submit run
+
+        This function submits a configuration
         embedded in a run_info object, and uses one of the workers
         to produce a result locally to each worker.
         The execution of a configuration follows this procedure:
@@ -83,6 +114,11 @@ class SubmititRunner(BaseRunner):
         ----------
         run_info: RunInfo
             An object containing the configuration and the necessary data to run it
+
+        Returns
+        -------
+        None
+
         """
         # Check for resources or block till one is available
         assert self.launcher.config
@@ -127,27 +163,39 @@ class SubmititRunner(BaseRunner):
         return [tuple(diff_overrides)]
 
     def _workers_available(self) -> bool:
+        """
+        Check if workers are available
+
+        Returns
+        -------
+        bool
+            Yes/No: At least one worker is available.
+
+        """
         if len(self.running_job_info) < self.n_jobs:
             return True
         return False
 
-    def get_finished_runs(self) -> typing.List[typing.Tuple[RunInfo, RunValue]]:
-        """This method returns any finished configuration, and returns a list with
+    def get_finished_runs(self) -> List[Tuple[RunInfo, RunValue]]:
+        """
+        Return finisihed configurations/runs
+
+        This method returns any finished configuration, and returns a list with
         the results of exercising the configurations. This class keeps populating results
         to self.results until a call to get_finished runs is done. In this case, the
         self.results list is emptied and all RunValues produced by running run() are
         returned.
+
         Returns
         -------
-            List[RunInfo, RunValue]: A list of RunValues (and respective RunInfo), that is,
-                the results of executing a run_info
-            a submitted configuration
+        List[RunInfo, RunValue]: A list of RunValues (and respective RunInfo), that is,
+            the results of executing a run_info and a submitted configuration.
         """
 
         # Proactively see if more configs have finished
         self._extract_completed_runs_from_futures()
 
-        results_list: typing.List[typing.Tuple[RunInfo, RunValue]] = []
+        results_list: List[Tuple[RunInfo, RunValue]] = []
         while self.results:
             # run_info, job = self.results.pop()
             job_info = self.results.pop()
@@ -167,11 +215,13 @@ class SubmititRunner(BaseRunner):
 
     def _extract_completed_runs_from_futures(self) -> None:
         """
+        Manage active runs
+
         A run is over, when a future has done() equal true.
         This function collects the completed futures and move
         them from self.futures to self.results.
         We make sure futures never exceed the capacity of
-        the scheduler
+        the scheduler.
         """
         jobs_done = [job for job in self.running_job_info if job.done()]
         for job_info in jobs_done:
@@ -180,8 +230,11 @@ class SubmititRunner(BaseRunner):
             self.running_job_info.remove(job_info)
 
     def wait(self) -> None:
-        """SMBO/intensifier might need to wait for runs to finish before making a decision.
-        This class waits until 1 run completes
+        """
+        Wait for runs to finish
+
+        SMBO/intensifier might need to wait for runs to finish before making a decision.
+        This class waits until 1 run completes.
         """
         if len(self.running_job_info):
 
@@ -207,6 +260,8 @@ class SubmititRunner(BaseRunner):
 
     def pending_runs(self) -> bool:
         """
+        Check if configs are running
+
         Whether or not there are configs still running. Generally if the runner is serial,
         launching a run instantly returns it's result. On parallel runners, there might
         be pending configurations to complete.
@@ -219,14 +274,17 @@ class SubmititRunner(BaseRunner):
         self,
         config: Configuration,
         instance: str,
-        cutoff: typing.Optional[float] = None,
+        cutoff: float | None = None,
         seed: int = 12345,
-        budget: typing.Optional[float] = None,
+        budget: float | None = None,
         instance_specific: str = "0",
-    ) -> typing.Tuple[StatusType, float, float, typing.Dict]:
+    ) -> Tuple[StatusType, float, float, Dict]:
         """
+        Run configuration on target algorithm
+
         This method only complies with the abstract parent class. In the parallel case,
         we call the single worker run() method
+
         Parameters
         ----------
             config : Configuration
@@ -243,6 +301,7 @@ class SubmititRunner(BaseRunner):
                 algorithm. Handled by the target algorithm internally
             instance_specific: str
                 instance specific information (e.g., domain file or solution)
+
         Returns
         -------
             status: enum of StatusType (int)
@@ -264,4 +323,12 @@ class SubmititRunner(BaseRunner):
         )
 
     def num_workers(self) -> int:
+        """
+        Get the number of workers / jobs.
+
+        Returns
+        -------
+        int
+            Number of workers/jobs
+        """
         return self.n_jobs

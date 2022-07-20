@@ -1,7 +1,15 @@
 import logging
 
 
-def silence_smac_loggers():
+def silence_smac_loggers() -> None:
+    """
+    Disable all SMAC loggers
+
+    Returns
+    -------
+    None
+
+    """
     logger_names = list(logging.root.manager.loggerDict)
     logger_names = [n for n in logger_names if n.startswith("smac")]
 

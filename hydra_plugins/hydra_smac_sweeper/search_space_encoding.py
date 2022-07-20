@@ -35,7 +35,8 @@ def search_space_to_config_space(
     """
     Convert hydra search space to SMAC's configuration space.
 
-    See the [ConfigSpace docs]() for information of how to define a configuration (search) space.
+    See the [ConfigSpace docs](https://automl.github.io/ConfigSpace/master/API-Doc.html#) for information of how
+    to define a configuration (search) space.
 
     In a yaml (hydra) config file, the smac.search space must take the form of:
 

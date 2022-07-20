@@ -22,6 +22,22 @@ class SubmititSmacLauncherMixin(BaseSubmititLauncher):
     global_overrides: List[str] = []
 
     def launch(self, job_overrides: Sequence[Sequence[str]], initial_job_idx: int) -> List[Job[JobReturn]]:
+        """
+        Launch a job
+
+        Parameters
+        ----------
+        job_overrides: Sequence[Sequence[str]]
+            A batch of job arguments.
+        initial_job_idx: int
+            Initial job idx. used by sweepers that executes several batches
+
+        Returns
+        -------
+        List[Job[JobReturn]]
+            Finished jobs.
+
+        """
         # lazy import to ensure plugin discovery remains fast
         import submitit
 
