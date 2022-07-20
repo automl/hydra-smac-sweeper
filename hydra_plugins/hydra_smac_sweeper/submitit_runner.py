@@ -1,8 +1,13 @@
-import time
 import typing
+
+import time
 
 import pandas as pd
 from hydra.core.utils import JobStatus
+from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
+    SubmititSmacLauncherMixin,
+)
+from hydra_plugins.hydra_smac_sweeper.utils.job_info import JobInfo
 from omegaconf import OmegaConf
 from smac.configspace import Configuration
 from smac.runhistory.runhistory import RunInfo, RunValue
@@ -10,9 +15,6 @@ from smac.tae import StatusType
 from smac.tae.base import BaseRunner
 from smac.tae.execute_func import ExecuteTAFuncDict
 from submitit import Job
-
-from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncherMixin
-from hydra_plugins.hydra_smac_sweeper.utils.job_info import JobInfo
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"

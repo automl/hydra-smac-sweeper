@@ -1,24 +1,27 @@
-import logging
 from typing import List, Optional, cast
-import numpy as np
-from omegaconf import DictConfig, OmegaConf
 
+import logging
+
+import numpy as np
 from hydra.core.override_parser.overrides_parser import OverridesParser
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
-from hydra.utils import instantiate, get_class
-
-from hydra_plugins.hydra_smac_sweeper.search_space_encoding import \
-    search_space_to_config_space
+from hydra.utils import get_class, instantiate
+from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
+    search_space_to_config_space,
+)
 from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
-from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SubmititSmacLauncherMixin
+from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
+    SubmititSmacLauncherMixin,
+)
 from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
-
+from omegaconf import DictConfig, OmegaConf
+from smac.configspace import Configuration, ConfigurationSpace
 from smac.facade.smac_mf_facade import SMAC4MF
+
 # import smac
 from smac.scenario.scenario import Scenario
-from smac.configspace import Configuration, ConfigurationSpace
 from smac.stats.stats import Stats
 
 log = logging.getLogger(__name__)

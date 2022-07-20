@@ -1,14 +1,18 @@
+from typing import Any, List, Sequence
+
 import logging
 import os
 from pathlib import Path
-from typing import Any, List, Sequence
 
 from hydra.core.singleton import Singleton
 from hydra.core.utils import JobReturn, filter_overrides
-from omegaconf import OmegaConf
-
 from hydra_plugins.hydra_submitit_launcher.config import BaseQueueConf
-from hydra_plugins.hydra_submitit_launcher.submitit_launcher import SlurmLauncher, LocalLauncher, BaseSubmititLauncher
+from hydra_plugins.hydra_submitit_launcher.submitit_launcher import (
+    BaseSubmititLauncher,
+    LocalLauncher,
+    SlurmLauncher,
+)
+from omegaconf import OmegaConf
 from submitit import Job
 
 log = logging.getLogger(__name__)

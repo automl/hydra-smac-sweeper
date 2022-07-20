@@ -2,14 +2,16 @@
 Warning: If the tests fail because no slurm output could be written to disk, change the pytest directory,
 e.g. by appending --basetemp=./tmp/pytest to your pytest command.
 """
-import os
-import glob
+from typing import Any, Dict, List, Optional, Union
 
+import glob
+import json
+import os
 from functools import partial
 from pathlib import Path
-from typing import Any, List, Optional, Union, Dict
-import json
 
+from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
+from examples.branin import branin
 from hydra.core.override_parser.overrides_parser import OverridesParser
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
@@ -18,19 +20,16 @@ from hydra.test_utils.test_utils import (
     chdir_plugin_root,
     run_python_script,
 )
-from omegaconf import DictConfig, OmegaConf
-from pytest import mark, warns
-
-from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
-
+from hydra.utils import get_class, instantiate
+from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
+    search_space_to_config_space,
+)
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper import SMACSweeper
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend import SMACSweeperBackend
-from hydra_plugins.hydra_smac_sweeper.search_space_encoding import search_space_to_config_space
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
-from examples.branin import branin
+from omegaconf import DictConfig, OmegaConf
+from pytest import mark, warns
 from smac.facade.smac_ac_facade import SMAC4AC
-from hydra.utils import instantiate, get_class
-
 from smac.facade.smac_hpo_facade import SMAC4HPO
 
 chdir_plugin_root()

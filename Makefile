@@ -5,7 +5,7 @@ NAME := Hydra-SMAC-Sweeper
 PACKAGE_NAME := hydra_smac_sweeper
 
 DIR := "${CURDIR}"
-SOURCE_DIR := ${PACKAGE_NAME}
+SOURCE_DIR := hydra_plugins/${PACKAGE_NAME}
 DIST := dist
 DOCDIR := docs
 INDEX_HTML := "file://${DIR}/docs/build/html/index.html"

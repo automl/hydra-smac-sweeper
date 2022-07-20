@@ -1,8 +1,13 @@
-from dataclasses import dataclass, field
 from typing import Any, Dict, Literal, Optional
 
+from dataclasses import dataclass, field
+
 from hydra.core.config_store import ConfigStore
-from hydra_plugins.hydra_submitit_launcher.config import BaseQueueConf, SlurmQueueConf, LocalQueueConf
+from hydra_plugins.hydra_submitit_launcher.config import (
+    BaseQueueConf,
+    LocalQueueConf,
+    SlurmQueueConf,
+)
 
 
 @dataclass

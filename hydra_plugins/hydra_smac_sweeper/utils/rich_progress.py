@@ -1,9 +1,9 @@
-from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
-from hydra.core.utils import filter_overrides, JobStatus
-import time
 import logging
+import time
 from functools import lru_cache
 
+from hydra.core.utils import JobStatus, filter_overrides
+from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 
 log = logging.getLogger(__name__)
 
