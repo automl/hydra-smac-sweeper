@@ -72,12 +72,8 @@ def mlp_from_cfg(cfg: DictConfig):
         )
 
         # returns the cross validation accuracy
-        cv = StratifiedKFold(
-            n_splits=5, random_state=cfg.seed, shuffle=True
-        )  # to make CV splits consistent
-        score = cross_val_score(
-            mlp, digits.data, digits.target, cv=cv, error_score="raise"
-        )
+        cv = StratifiedKFold(n_splits=5, random_state=cfg.seed, shuffle=True)  # to make CV splits consistent
+        score = cross_val_score(mlp, digits.data, digits.target, cv=cv, error_score="raise")
 
     return 1 - np.mean(score)
 

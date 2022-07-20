@@ -12,9 +12,7 @@ from hydra_plugins.hydra_submitit_launcher.config import (
 
 @dataclass
 class SMACSweeperConfig:
-    _target_: str = (
-        "hydra_plugins.hydra_smac_sweeper.smac_sweeper.SMACSweeper"
-    )
+    _target_: str = "hydra_plugins.hydra_smac_sweeper.smac_sweeper.SMACSweeper"
     search_space: Dict[str, Any] = field(default_factory=dict)
     seed: Optional[int] = None
     n_trials: Optional[int] = None
@@ -24,21 +22,18 @@ class SMACSweeperConfig:
     budget_variable: Optional[str] = None  # TODO document budget var
 
 
-ConfigStore.instance().store(group="hydra/sweeper",
-                             name="SMAC", node=SMACSweeperConfig, provider="hydra_smac_sweeper")
+ConfigStore.instance().store(group="hydra/sweeper", name="SMAC", node=SMACSweeperConfig, provider="hydra_smac_sweeper")
 
 
 @dataclass
 class LauncherConfigMixin(BaseQueueConf):
     progress: str = "rich"  # possible values: basic, rich
-    progress_slurm_refresh_interval: int = 15 # in seconds
+    progress_slurm_refresh_interval: int = 15  # in seconds
 
 
 @dataclass
 class SlurmLauncherConfig(LauncherConfigMixin, SlurmQueueConf):
-    _target_: str = (
-        "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SMACSlurmLauncher"
-    )
+    _target_: str = "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SMACSlurmLauncher"
 
 
 ConfigStore.instance().store(
@@ -51,9 +46,7 @@ ConfigStore.instance().store(
 
 @dataclass
 class LocalLauncherConfig(LauncherConfigMixin, LocalQueueConf):
-    _target_: str = (
-        "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SMACLocalLauncher"
-    )
+    _target_: str = "hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher.SMACLocalLauncher"
 
 
 ConfigStore.instance().store(

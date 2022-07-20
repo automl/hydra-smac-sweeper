@@ -21,9 +21,7 @@ log = logging.getLogger(__name__)
 class SubmititSmacLauncherMixin(BaseSubmititLauncher):
     global_overrides: List[str] = []
 
-    def launch(
-        self, job_overrides: Sequence[Sequence[str]], initial_job_idx: int
-    ) -> List[Job[JobReturn]]:
+    def launch(self, job_overrides: Sequence[Sequence[str]], initial_job_idx: int) -> List[Job[JobReturn]]:
         # lazy import to ensure plugin discovery remains fast
         import submitit
 
@@ -33,7 +31,7 @@ class SubmititSmacLauncherMixin(BaseSubmititLauncher):
         assert num_jobs > 0
         params = self.params
         # build executor
-        submitit_smac_launcher_keys = {'progress', 'progress_slurm_refresh_interval'}
+        submitit_smac_launcher_keys = {"progress", "progress_slurm_refresh_interval"}
         init_params = {"folder": self.params["submitit_folder"]}
         specific_init_keys = {"max_num_timeout"}
 
@@ -65,7 +63,7 @@ class SubmititSmacLauncherMixin(BaseSubmititLauncher):
         job_params: List[Any] = []
         for idx, overrides in enumerate(job_overrides):
             idx = initial_job_idx + idx
-            if self.params['progress'] == 'basic':
+            if self.params["progress"] == "basic":
                 lst = " ".join(filter_overrides(overrides))
                 log.info(f"\t#{idx} : {lst}")
             job_params.append(

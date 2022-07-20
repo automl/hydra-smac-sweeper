@@ -36,23 +36,23 @@ chdir_plugin_root()
 
 
 def test_discovery() -> None:
-    assert SMACSweeper.__name__ in [
-        x.__name__ for x in Plugins.instance().discover(Sweeper)
-    ]
+    assert SMACSweeper.__name__ in [x.__name__ for x in Plugins.instance().discover(Sweeper)]
 
 
 def create_configspace_a() -> ConfigurationSpace:
     cs = ConfigurationSpace()
-    cs.add_hyperparameters([
-        UniformFloatHyperparameter(lower=-512, upper=512, default_value=-3, log=False, name="x0"),
-        UniformFloatHyperparameter(lower=335, upper=512, default_value=400, log=True, name="x1")
-    ])
+    cs.add_hyperparameters(
+        [
+            UniformFloatHyperparameter(lower=-512, upper=512, default_value=-3, log=False, name="x0"),
+            UniformFloatHyperparameter(lower=335, upper=512, default_value=400, log=True, name="x1"),
+        ]
+    )
     return cs
 
 
 def create_configspace_a_with_defaultdefaults() -> ConfigurationSpace:
     cs = create_configspace_a()
-    cs["x0"].default_value = 0.
+    cs["x0"].default_value = 0.0
     cs["x1"].default_value = 414.1497313774
     return cs
 
@@ -61,59 +61,43 @@ def create_configspace_a_with_defaultdefaults() -> ConfigurationSpace:
     "input, expected",
     [
         # Test parsing json-Configuration Space
-        (
-            "tests/configspace_a.json",
-            create_configspace_a()
-        ),
-
+        ("tests/configspace_a.json", create_configspace_a()),
         # Test creation of ConfigurationSpace from dict
         (
-            DictConfig(content={
-                "hyperparameters": {  # same structure as in yaml file
-                    "x0": {
-                        "type": "uniform_float",
-                        "lower": -512.0,
-                        "upper": 512.0,
-                        "default": -3.0
-                    },
-                    "x1": {
-                        "type": "uniform_float",
-                        "log": True,
-                        "lower": 335,
-                        "upper": 512.0,
-                        "default": 400
+            DictConfig(
+                content={
+                    "hyperparameters": {  # same structure as in yaml file
+                        "x0": {"type": "uniform_float", "lower": -512.0, "upper": 512.0, "default": -3.0},
+                        "x1": {"type": "uniform_float", "log": True, "lower": 335, "upper": 512.0, "default": 400},
                     }
                 }
-            }),
-            create_configspace_a()
-        ),
-
-        # Test passing ConfigurationSpace
-        (
+            ),
             create_configspace_a(),
-            create_configspace_a()
         ),
-
+        # Test passing ConfigurationSpace
+        (create_configspace_a(), create_configspace_a()),
         # Test if default value is set correctly
         (
-            DictConfig(content={
-                "hyperparameters": {  # same structure as in yaml file
-                    "x0": {
-                        "type": "uniform_float",
-                        "lower": -512.0,
-                        "upper": 512.0,
-                    },
-                    "x1": {
-                        "type": "uniform_float",
-                        "log": True,
-                        "lower": 335,
-                        "upper": 512.0,
+            DictConfig(
+                content={
+                    "hyperparameters": {  # same structure as in yaml file
+                        "x0": {
+                            "type": "uniform_float",
+                            "lower": -512.0,
+                            "upper": 512.0,
+                        },
+                        "x1": {
+                            "type": "uniform_float",
+                            "log": True,
+                            "lower": 335,
+                            "upper": 512.0,
+                        },
                     }
                 }
-            }),
-            create_configspace_a_with_defaultdefaults()
-        )
-    ]
+            ),
+            create_configspace_a_with_defaultdefaults(),
+        ),
+    ],
 )
 def test_search_space_parsing(input: Union[str, DictConfig], expected: ConfigurationSpace) -> None:
     actual = search_space_to_config_space(search_space=input, seed=48574)
@@ -127,6 +111,7 @@ def test_search_space_parsing_value_error() -> None:
         assert False
     except ValueError:
         assert True
+
 
 @mark.parametrize(
     "kwargs",
@@ -143,7 +128,7 @@ def test_search_space_parsing_value_error() -> None:
                 "smac_kwargs": None,
             }
         ),
-    ]
+    ],
 )
 def test_smac_sweeper_args(kwargs: DictConfig):
     # kwargs = OmegaConf.to_container(cfg=kwargs, resolve=True)
@@ -158,23 +143,17 @@ def test_smac_sweeper_args(kwargs: DictConfig):
             scenario={
                 "run_obj": "quality",
                 "deterministic": "true",
-        }),
+            }
+        ),
     )
     kwargs.update(default_kwargs)
     # kwargs = OmegaConf.create(kwargs)
     sweeper = SMACSweeperBackend(**kwargs)
-    config = OmegaConf.create({
-        "hydra": {
-            "sweep": {
-                "dir": "./tmp"
-            }
-        }
-        }
-    )
+    config = OmegaConf.create({"hydra": {"sweep": {"dir": "./tmp"}}})
     sweeper.config = config
     sweeper.launcher = SMACLocalLauncher()
     sweeper.launcher.config = config
-    sweeper.launcher.params['progress'] = "rich"
+    sweeper.launcher.params["progress"] = "rich"
     sweeper.hydra_context = 1
     sweeper.task_function = branin
     smac = sweeper.setup_smac()

@@ -30,9 +30,11 @@ __license__ = "3-clause BSD"
 
 def create_configspace() -> ConfigurationSpace:
     cs = ConfigurationSpace()
-    cs.add_hyperparameters([
-        UniformFloatHyperparameter(lower=-10, upper=10, default_value=-3, log=False, name="x"),
-    ])
+    cs.add_hyperparameters(
+        [
+            UniformFloatHyperparameter(lower=-10, upper=10, default_value=-3, log=False, name="x"),
+        ]
+    )
     return cs
 
 
@@ -48,27 +50,25 @@ def target_delayed(x, seed, instance):
 def target_wrapper(target_function) -> callable:
     def target(cfg: DictConfig):
         return target_function(x=cfg.x, seed=cfg.seed, instance=cfg.instance)
+
     return target
 
 
 def get_runner(ta, stats, n_jobs: int = 2) -> SubmititRunner:
     ta = target_wrapper(ta)
     launcher = SMACLocalLauncher()
-    config = OmegaConf.create({
-        "hydra": {
-            "sweep": {
-                "dir": "./tmp"
-            }
-        },
-        "x": 3,
-        "instance": 0,
-        "seed": 55,
-    }
+    config = OmegaConf.create(
+        {
+            "hydra": {"sweep": {"dir": "./tmp"}},
+            "x": 3,
+            "instance": 0,
+            "seed": 55,
+        }
     )
     launcher.config = config
-    launcher.params['progress'] = "rich"
-    launcher.params['progress_slurm_refresh_interval'] = 1
-    launcher.params['submitit_folder'] = "./tmp"
+    launcher.params["progress"] = "rich"
+    launcher.params["progress_slurm_refresh_interval"] = 1
+    launcher.params["submitit_folder"] = "./tmp"
     return SubmititRunner(ta=ta, n_jobs=n_jobs, launcher=launcher, budget_variable="", stats=stats, run_obj="quality")
 
 
@@ -78,7 +78,7 @@ class TestSubmititRunner(unittest.TestCase):
         self.scenario = Scenario({"cs": self.cs, "run_obj": "quality", "output_dir": ""})
         self.stats = Stats(scenario=self.scenario)
 
-    @patch('SMACLocalLauncher.', return_value=9)
+    @patch("SMACLocalLauncher.", return_value=9)
     def test_run(self):
         """Makes sure that we are able to run a configuration and
         return the expected values/types"""

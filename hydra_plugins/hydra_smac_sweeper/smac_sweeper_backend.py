@@ -80,9 +80,7 @@ class SMACSweeperBackend(Sweeper):
         # Setup other SMAC kwargs
         smac_kwargs = {}
         if self.smac_kwargs is not None:
-            smac_kwargs = OmegaConf.to_container(
-                self.smac_kwargs, resolve=True, enum_to_str=True
-            )
+            smac_kwargs = OmegaConf.to_container(self.smac_kwargs, resolve=True, enum_to_str=True)
 
         # Instantiate Scenario
         if self.configspace is None:
@@ -107,9 +105,9 @@ class SMACSweeperBackend(Sweeper):
                 launcher=self.launcher,
                 budget_variable=self.budget_variable,
                 ta=self.task_function,
-                stats=Stats(scenario=scenario)
+                stats=Stats(scenario=scenario),
             ),
-            **smac_kwargs
+            **smac_kwargs,
         )
         silence_smac_loggers()
 
@@ -129,6 +127,5 @@ class SMACSweeperBackend(Sweeper):
         smac.solver.stats.print_stats()
         log.info("Final Incumbent: %s", smac.solver.incumbent)
         if smac.solver.incumbent and smac.solver.incumbent in smac.solver.runhistory.get_all_configs():
-            log.info("Estimated cost of incumbent: %f",
-                     smac.solver.runhistory.get_cost(smac.solver.incumbent))
+            log.info("Estimated cost of incumbent: %f", smac.solver.runhistory.get_cost(smac.solver.incumbent))
         return incumbent

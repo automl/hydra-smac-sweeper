@@ -58,16 +58,14 @@ def mlp_from_cfg(cfg: DictConfig):
             learning_rate_init=cfg.optimizer.learning_rate_init,
             max_iter=int(np.ceil(cfg.max_epochs)),
             random_state=cfg.seed,
-            alpha=cfg.model.alpha
+            alpha=cfg.model.alpha,
         )
 
         # returns the cross validation accuracy
         cv = StratifiedKFold(
             n_splits=cfg.cv.n_splits, random_state=cfg.seed, shuffle=cfg.cv.shuffle
         )  # to make CV splits consistent
-        score = cross_val_score(
-            mlp, digits.data, digits.target, cv=cv, error_score="raise"
-        )
+        score = cross_val_score(mlp, digits.data, digits.target, cv=cv, error_score="raise")
 
     return 1 - np.mean(score)
 

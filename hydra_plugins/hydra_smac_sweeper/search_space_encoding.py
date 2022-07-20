@@ -29,7 +29,9 @@ class JSONCfgEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-def search_space_to_config_space(search_space: Union[str, DictConfig, ConfigurationSpace], seed: Optional[int] = None) -> ConfigurationSpace:
+def search_space_to_config_space(
+    search_space: Union[str, DictConfig, ConfigurationSpace], seed: Optional[int] = None
+) -> ConfigurationSpace:
     """
     Convert hydra search space to SMAC's configuration space.
 
@@ -90,7 +92,7 @@ def search_space_to_config_space(search_space: Union[str, DictConfig, Configurat
     ConfigurationSpace
     """
     if type(search_space) == str:
-        with open(search_space, 'r') as f:
+        with open(search_space, "r") as f:
             jason_string = f.read()
         cs = csjson.read(jason_string)
     elif type(search_space) == DictConfig:
@@ -107,10 +109,10 @@ def search_space_to_config_space(search_space: Union[str, DictConfig, Configurat
 
         if "conditions" not in search_space:
             search_space["conditions"] = []
-        
+
         if "forbiddens" not in search_space:
             search_space["forbiddens"] = []
-        
+
         jason_string = json.dumps(search_space, cls=JSONCfgEncoder)
         cs = csjson.read(jason_string)
     elif type(search_space) == ConfigurationSpace:

@@ -1,6 +1,4 @@
-
-class JobInfo():
-
+class JobInfo:
     def __init__(self, idx, job, overrides, run_info):
         self.idx = idx
         self.job = job
