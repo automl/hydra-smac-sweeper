@@ -14,8 +14,9 @@ from hydra_plugins.hydra_submitit_launcher.config import (
 class SMACSweeperConfig:
     _target_: str = "hydra_plugins.hydra_smac_sweeper.smac_sweeper.SMACSweeper"
     search_space: Dict[str, Any] = field(default_factory=dict)
-    seed: Optional[int] = None
-    n_trials: Optional[int] = None
+    scenario: Dict[str, Any] = field(default_factory=dict)
+    # seed: Optional[int] = None
+    # n_trials: Optional[int] = None
     n_jobs: int = 1
     smac_class: Optional[str] = None
     smac_kwargs: Optional[Dict] = None

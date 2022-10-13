@@ -25,6 +25,9 @@ In your virtual environment, install via pip:
 pip install -e .
 ```
 
+If you want a nice progress display, consider installing the 
+[hydra-submitit-rich-launcher](https://github.com/creinders/hydra_submitit_rich_launcher).
+
 Please find standard approaches for configuring hydra plugins
 [here](https://hydra.cc/docs/patterns/configuring_plugins/).
 
@@ -123,7 +126,7 @@ hydra:
 
 To optimize Branin's hyperparameters, call
 ```bash
-python branin.py --multirun
+python examples/branin.py --multirun
 ```
 
 ### Optimizing an MLP

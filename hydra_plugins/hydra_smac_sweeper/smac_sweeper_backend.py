@@ -19,10 +19,11 @@ from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
 )
 from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 from omegaconf import DictConfig, OmegaConf
-from smac.configspace import Configuration, ConfigurationSpace
-from smac.facade.smac_ac_facade import SMAC4AC
-from smac.scenario.scenario import Scenario
-from smac.stats.stats import Stats
+from ConfigSpace import ConfigurationSpace, Configuration
+# from smac.configspace import Configuration, ConfigurationSpace
+# from smac.facade.smac_ac_facade import SMAC4AC
+from smac.scenario import Scenario
+# from smac.stats.stats import Stats
 
 log = logging.getLogger(__name__)
 
@@ -33,9 +34,10 @@ class SMACSweeperBackend(Sweeper):
     def __init__(
         self,
         search_space: DictConfig | str | ConfigurationSpace,
-        n_trials: int,
+        scenario: DictConfig,
+        # n_trials: int,
         n_jobs: int,
-        seed: int | None = None,
+        # seed: int | None = None,
         smac_class: str | None = None,
         smac_kwargs: DictConfig | None = None,
         budget_variable: str | None = None,
@@ -70,11 +72,13 @@ class SMACSweeperBackend(Sweeper):
         self.search_space = search_space
         self.smac_class = smac_class
         self.smac_kwargs = smac_kwargs
+        self.scenario = scenario
         self.n_jobs = n_jobs
-        self.seed = seed
-        self.n_trials = n_trials
+        # self.seed = seed
+        # self.n_trials = n_trials
         self.budget_variable = budget_variable
-        self.rng = np.random.RandomState(self.seed)
+        self.seed = self.scenario.get("seed", None)
+        # self.rng = np.random.RandomState(self.seed)
 
         self.task_function: TaskFunction | None = None
         self.sweep_dir: str | None = None
@@ -108,7 +112,7 @@ class SMACSweeperBackend(Sweeper):
         self.task_function = task_function
         self.sweep_dir = config.hydra.sweep.dir
 
-    def setup_smac(self) -> SMAC4AC:
+    def setup_smac(self):
         """
         Setup SMAC.
 
@@ -124,7 +128,7 @@ class SMACSweeperBackend(Sweeper):
         if self.smac_class is not None:
             smac_class = get_class(self.smac_class)
         else:
-            smac_class = "smac.facade.smac_ac_facade.SMAC4AC"
+            smac_class = "smac.facade.multi_fidelity_facade.MultiFidelityFacade"
             smac_class = get_class(smac_class)
 
         # Setup other SMAC kwargs
@@ -136,27 +140,38 @@ class SMACSweeperBackend(Sweeper):
         if self.configspace is None:
             self.configspace = search_space_to_config_space(search_space=self.search_space, seed=self.seed)
         scenario_kwargs = dict(
-            cs=self.configspace,
-            output_dir=self.config.hydra.sweep.dir,
-            ta_run_limit=self.n_trials,
+            configspace=self.configspace,
+            output_directory=self.config.hydra.sweep.dir,
+            # n_trials=self.n_trials,
+            # seed=self.seed,
         )
-        scenario = smac_kwargs.get("scenario", None)
-        if scenario is not None:
-            scenario_kwargs.update(scenario)
+        # scenario = smac_kwargs.get("scenario", None)
+        if self.scenario is not None:
+            scenario_kwargs.update(self.scenario)
+        
+        n_workers = scenario_kwargs.get("n_workers", None)
+        if n_workers is not None and n_workers > 1:
+            raise ValueError("n_workers in scenario must be 1 because otherwise "
+                             "SMAC wraps our runner handling multiple jobs again "
+                             f"in a runner for multiple jobs. Got n_workers={n_workers}. "
+                             "If you want to set the number of workers, set n_jobs ."
+                             "(in your config yaml file: hydra.sweeper.n_jobs).")
 
-        scenario = Scenario(scenario=scenario_kwargs)
+        scenario = Scenario(**scenario_kwargs)
         smac_kwargs["scenario"] = scenario
 
+        printr(smac_class, smac_kwargs)
+
+        target_function = SubmititRunner(
+            scenario=scenario,
+            launcher=self.launcher,
+            budget_variable=self.budget_variable,
+            target_function=self.task_function,
+            n_jobs=self.n_jobs
+        )
+
         smac = smac_class(
-            rng=self.rng,
-            tae_runner=SubmititRunner,
-            tae_runner_kwargs=dict(
-                n_jobs=self.n_jobs,
-                launcher=self.launcher,
-                budget_variable=self.budget_variable,
-                ta=self.task_function,
-                stats=Stats(scenario=scenario),
-            ),
+            target_function=target_function,
             **smac_kwargs,
         )
         silence_smac_loggers()
@@ -191,8 +206,11 @@ class SMACSweeperBackend(Sweeper):
         smac = self.setup_smac()
 
         incumbent = smac.optimize()
-        smac.solver.stats.print_stats()
-        log.info("Final Incumbent: %s", smac.solver.incumbent)
-        if smac.solver.incumbent and smac.solver.incumbent in smac.solver.runhistory.get_all_configs():
-            log.info("Estimated cost of incumbent: %f", smac.solver.runhistory.get_cost(smac.solver.incumbent))
+        smac.stats.print()
+        log.info(f"Final Incumbent: {incumbent}")
+        if incumbent is not None:
+            incumbent_cost = smac.runhistory.get_cost(incumbent)
+            log.info(f"Estimated cost of incumbent: {incumbent_cost}")
+        # if smac.solver.incumbent and smac.solver.incumbent in smac.solver.runhistory.get_all_configs():
+        #     log.info("Estimated cost of incumbent: %f", smac.solver.runhistory.get_cost(smac.solver.incumbent))
         return incumbent

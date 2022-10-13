@@ -79,7 +79,7 @@ class SubmititSmacLauncherMixin(BaseSubmititLauncher):
         job_params: List[Any] = []
         for idx, overrides in enumerate(job_overrides):
             idx = initial_job_idx + idx
-            if self.params["progress"] == "basic":
+            if self.params.get("progress", None) == "basic":
                 lst = " ".join(filter_overrides(overrides))
                 log.info(f"\t#{idx} : {lst}")
             job_params.append(

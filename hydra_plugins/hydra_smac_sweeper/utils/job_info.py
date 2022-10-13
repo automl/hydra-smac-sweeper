@@ -1,11 +1,11 @@
 from typing import List
 
-from smac.runhistory.runhistory import RunInfo
+from smac.runhistory import TrialInfo
 from submitit.core.core import Job
 
 
 class JobInfo:
-    def __init__(self, idx: int, job: Job, overrides: List[str], run_info: RunInfo):
+    def __init__(self, idx: int, job: Job, overrides: List[str], trial_info: TrialInfo):
         """
         Job Info
 
@@ -17,13 +17,13 @@ class JobInfo:
             Job instance.
         overrides: List[str]
             Overrides / hydra args of this job.
-        run_info: RunInfo
-            SMAC's run information.
+        trial_info: TrialInfo
+            SMAC's trail information.
         """
         self.idx = idx
         self.job = job
         self.overrides = overrides
-        self.run_info = run_info
+        self.trial_info = trial_info
 
     def done(self) -> bool:
         """

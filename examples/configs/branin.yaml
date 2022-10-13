@@ -10,19 +10,23 @@ hydra:
 #    gres: null
 #    timeout_min: 10
   sweeper:
-    n_jobs: 4
-    seed: 42
-    n_trials: 36
-    smac_class: smac.facade.smac_mf_facade.SMAC4MF
-    smac_kwargs:
-      scenario:
-        run_obj: quality
-        deterministic: true
-      intensifier: ${get_class:smac.intensification.hyperband.Hyperband}  # TODO document in docu how to set smac kwargs / caveats
-      intensifier_kwargs:  # TODO use normal SMAC4AC here
-        initial_budget: 1  # TODO we can only use MF with parallelism right now
-        max_budget: 1
-    search_space:
+    n_jobs: 8
+    scenario:
+      seed: 42
+      n_trials: 40
+      min_budget: 1
+      max_budget: 1
+      deterministic: true
+#    smac_class: smac.facade.smac_mf_facade.SMAC4MF
+#    smac_kwargs:
+#      scenario:
+#        run_obj: quality
+#        deterministic: true
+#      intensifier: ${get_class:smac.intensification.hyperband.Hyperband}  # TODO document in docu how to set smac kwargs / caveats
+#      intensifier_kwargs:  # TODO use normal SMAC4AC here
+#        initial_budget: 1  # TODO we can only use MF with parallelism right now
+#        max_budget: 1
+    search_space:  # TODO adjust search space
       hyperparameters:
         x0:
           type: uniform_float

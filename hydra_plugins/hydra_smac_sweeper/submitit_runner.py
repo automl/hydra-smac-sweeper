@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Iterator
 
 import time
 
@@ -12,11 +12,12 @@ from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
 )
 from hydra_plugins.hydra_smac_sweeper.utils.job_info import JobInfo
 from omegaconf import OmegaConf
-from smac.configspace import Configuration
-from smac.runhistory.runhistory import RunInfo, RunValue
-from smac.tae import StatusType
-from smac.tae.base import BaseRunner
-from smac.tae.execute_func import ExecuteTAFuncDict
+from ConfigSpace import Configuration
+from smac.runhistory import TrialInfo, TrialValue
+from smac.runhistory.enumerations import StatusType
+from smac.runner.abstract_runner import AbstractRunner
+from smac.runner import TargetFunctionRunner
+from smac.scenario import Scenario
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
@@ -26,15 +27,17 @@ def flatten_dict(d):
     return list(pd.json_normalize(d).T.to_dict().values())[0]
 
 
-class SubmititRunner(BaseRunner):
+class SubmititRunner(AbstractRunner):  # TODO check if correct class to inherit from
     def __init__(
         self,
-        ta: Callable,
+        target_function: Callable,
+        scenario: Scenario,
         launcher: SMACLocalLauncher | SMACSlurmLauncher,
-        n_jobs: int,
         budget_variable: str | None,
+        required_arguments: list[str] = [],
+        n_jobs: int = 1,
         output_directory: str | None = None,
-        **kwargs: Dict[Any, Any],
+        **kwargs: dict[Any, Any],
     ) -> None:
         """
         Interface class to handle the execution of SMAC' configurations via submitit.
@@ -61,14 +64,23 @@ class SubmititRunner(BaseRunner):
         None
 
         """
-        single_worker = ExecuteTAFuncDict(ta=ta, **kwargs)
+        single_worker = TargetFunctionRunner(
+            scenario=scenario,
+            target_function=target_function,
+            required_arguments=required_arguments
+        )
+        # super().__init__(
+        #     ta=single_worker.ta,
+        #     stats=single_worker.stats,
+        #     run_obj=single_worker.run_obj,
+        #     par_factor=single_worker.par_factor,
+        #     cost_for_crash=single_worker.cost_for_crash,
+        #     abort_on_first_run_crash=single_worker.abort_on_first_run_crash,
+        # )
+
         super().__init__(
-            ta=single_worker.ta,
-            stats=single_worker.stats,
-            run_obj=single_worker.run_obj,
-            par_factor=single_worker.par_factor,
-            cost_for_crash=single_worker.cost_for_crash,
-            abort_on_first_run_crash=single_worker.abort_on_first_run_crash,
+            scenario=single_worker._scenario,
+            required_arguments=single_worker._required_arguments,
         )
 
         # The single worker, which is replicated on a need
@@ -81,7 +93,7 @@ class SubmititRunner(BaseRunner):
         self.n_jobs = n_jobs
         self.job_idx = 0
         self.running_job_info = []
-        self.results: List[JobInfo] = []
+        self.results: list[JobInfo] = []
         self.base_cfg_flat = flatten_dict(OmegaConf.to_container(launcher.config, enum_to_str=True))
         self.budget_variable = budget_variable
 
@@ -97,51 +109,44 @@ class SubmititRunner(BaseRunner):
             self.progress_handler = None
         del launcher.params["progress"]
 
-    def submit_run(self, run_info: RunInfo) -> None:
-        """
-        Submit run
+    def submit_trial(self, trial_info: TrialInfo) -> None:
+        """This function submits a configuration embedded in a TrialInfo object, and uses one of the
+        workers to produce a result (such result will eventually be available on the `self._results_queue`
+        FIFO).
 
-        This function submits a configuration
-        embedded in a run_info object, and uses one of the workers
-        to produce a result locally to each worker.
-        The execution of a configuration follows this procedure:
-        1.  SMBO/intensifier generates a run_info
-        2.  SMBO calls submit_run so that a worker launches the run_info
-        3.  submit_run internally calls self.run(). it does so via a call to self.run_wrapper()
-        which contains common code that any run() method will otherwise have to implement, like
-        capping check.
-        Child classes must implement a run() method.
-        All results will be only available locally to each worker, so the
-        main node needs to collect them.
+        This interface method will be called by SMBO, with the expectation
+        that a function will be executed by a worker. What will be executed is dictated by trial_info, and "how" will it
+        be executed is decided via the child class that implements a run() method.
+
+        Because config submission can be a serial/parallel endeavor, it is expected to be implemented by a child class.
 
         Parameters
         ----------
-        run_info: RunInfo
-            An object containing the configuration and the necessary data to run it
+        trial_info : TrialInfo
+            An object containing the configuration launched.
 
-        Returns
-        -------
+        Return
+        ------
         None
-
         """
         # Check for resources or block till one is available
         assert self.launcher.config
         while not self._workers_available():
             self.wait()
             self._extract_completed_runs_from_futures()
-        overrides = self._diff_overrides(run_info)
+        overrides = self._diff_overrides(trial_info)
         if self.budget_variable is not None:
-            overrides = [override + (f"{self.budget_variable}={run_info.budget}",) for override in overrides]
+            overrides = [override + (f"{self.budget_variable}={trial_info.budget}",) for override in overrides]
         jobs = self.launcher.launch(overrides, self.job_idx)
 
         for i, (override, job) in enumerate(zip(overrides, jobs)):
             idx = self.job_idx + i
-            job_info = JobInfo(idx=idx, job=job, overrides=override, run_info=run_info)
+            job_info = JobInfo(idx=idx, job=job, overrides=override, trial_info=trial_info)
             self.running_job_info.append(job_info)
 
         self.job_idx += len(jobs)
 
-    def _diff_overrides(self, run_info: RunInfo):
+    def _diff_overrides(self, run_info: TrialInfo):
         run_info_cfg_flat = flatten_dict(run_info.config.get_dictionary())
 
         diff_overrides = []
@@ -180,33 +185,33 @@ class SubmititRunner(BaseRunner):
             return True
         return False
 
-    def get_finished_runs(self) -> List[Tuple[RunInfo, RunValue]]:
+    def get_finished_runs(self) -> list[tuple[TrialInfo, TrialValue]]:
         """
         Return finisihed configurations/runs
 
         This method returns any finished configuration, and returns a list with
         the results of exercising the configurations. This class keeps populating results
         to self.results until a call to get_finished runs is done. In this case, the
-        self.results list is emptied and all RunValues produced by running run() are
+        self.results list is emptied and all TrialValues produced by running run() are
         returned.
 
         Returns
         -------
-        List[RunInfo, RunValue]: A list of RunValues (and respective RunInfo), that is,
+        list[TrialInfo, TrialValue]: A list of TrialValues (and respective TrialInfo), that is,
             the results of executing a run_info and a submitted configuration.
         """
 
         # Proactively see if more configs have finished
         self._extract_completed_runs_from_futures()
 
-        results_list: List[Tuple[RunInfo, RunValue]] = []
+        results_list: list[tuple[TrialInfo, TrialValue]] = []
         while self.results:
             # run_info, job = self.results.pop()
             job_info = self.results.pop()
             run_info, job = job_info.run_info, job_info.job
             ret = job.result()
             endtime = time.time()
-            run_value = RunValue(
+            run_value = TrialValue(
                 cost=ret.return_value,
                 time=endtime - job._start_time,
                 status=StatusType.SUCCESS if ret.status == JobStatus.COMPLETED else StatusType.CRASHED,
@@ -262,9 +267,9 @@ class SubmititRunner(BaseRunner):
 
                     time.sleep(1)
 
-    def pending_runs(self) -> bool:
+    def is_running(self) -> bool:
         """
-        Check if configs are running
+        Check if trails are running
 
         Whether or not there are configs still running. Generally if the runner is serial,
         launching a run instantly returns it's result. On parallel runners, there might
@@ -282,7 +287,7 @@ class SubmititRunner(BaseRunner):
         seed: int = 12345,
         budget: float | None = None,
         instance_specific: str = "0",
-    ) -> Tuple[StatusType, float, float, Dict]:
+    ) -> tuple[StatusType, float, float, dict]:
         """
         Run configuration on target algorithm
 
@@ -326,7 +331,7 @@ class SubmititRunner(BaseRunner):
             instance_specific=instance_specific,
         )
 
-    def num_workers(self) -> int:
+    def count_available_workers(self) -> int:
         """
         Get the number of workers / jobs.
 
@@ -335,4 +340,39 @@ class SubmititRunner(BaseRunner):
         int
             Number of workers/jobs
         """
-        return self.n_jobs
+        # TODO find out why n_jobs needs to be double the amount
+        # TODO find out why we have too little number of trials
+        return self.n_jobs - len(self.running_job_info)
+
+
+    def iter_results(self) -> Iterator[tuple[TrialInfo, TrialValue]]:
+        """This method returns any finished configuration, and returns a list with the
+        results of exercising the configurations. This class keeps populating results
+        to ``self._results_queue`` until a call to ``get_finished`` trials is done. In this case,
+        the `self._results_queue` list is emptied and all trial values produced by running
+        `run` are returned.
+
+        Returns
+        -------
+        Iterator[tuple[TrialInfo, TrialValue]]:
+            A list of TrialInfo/TrialValue tuples, all of which have been finished.
+        """
+        # Proactively see if more configs have finished
+        self._extract_completed_runs_from_futures()
+
+        while self.results:
+            # trial_info, job = self.results.pop()
+            job_info = self.results.pop()
+            trial_info, job = job_info.trial_info, job_info.job
+            ret = job.result()
+            endtime = time.time()
+            status = StatusType.SUCCESS if ret.status == JobStatus.COMPLETED else StatusType.CRASHED
+            run_value = TrialValue(
+                cost=ret.return_value,
+                time=endtime - job._start_time,
+                status=status,
+                starttime=job._start_time,
+                endtime=endtime,
+                additional_info=None,
+            )
+            yield (trial_info, run_value)
