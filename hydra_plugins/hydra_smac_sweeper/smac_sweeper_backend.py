@@ -129,7 +129,7 @@ class SMACSweeperBackend(Sweeper):
         if self.smac_class is not None:
             smac_class = get_class(self.smac_class)
         else:
-            smac_class = "smac.facade.multi_fidelity_facade.MultiFidelityFacade"
+            smac_class = "smac.facade.hyperparameter_optimization_facade.HyperparameterOptimizationFacade"
             smac_class = get_class(smac_class)
 
         if smac_class == MultiFidelityFacade and self.budget_variable is None:
