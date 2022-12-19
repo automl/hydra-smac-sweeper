@@ -17,7 +17,6 @@ from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
     SubmititSmacLauncherMixin,
 )
-from hydra_plugins.hydra_smac_sweeper.utils.smac import silence_smac_loggers
 from omegaconf import DictConfig, OmegaConf
 from ConfigSpace import ConfigurationSpace, Configuration
 # from smac.configspace import Configuration, ConfigurationSpace
@@ -181,7 +180,6 @@ class SMACSweeperBackend(Sweeper):
             target_function=target_function,
             **smac_kwargs,
         )
-        silence_smac_loggers()
 
         return smac
 
