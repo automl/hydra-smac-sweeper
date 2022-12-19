@@ -101,7 +101,6 @@ class SubmititRunner(AbstractRunner):  # TODO check if correct class to inherit 
         if "progress" not in launcher.params:
             launcher.params["progress"] = "rich"
         if launcher.params["progress"] == "rich":
-            # TODO: add rich to requirements
             from .utils.rich_progress import RichProgress
 
             self.progress_handler = RichProgress()
