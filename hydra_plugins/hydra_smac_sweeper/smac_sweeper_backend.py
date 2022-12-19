@@ -9,7 +9,7 @@ import numpy as np
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
-from hydra.utils import get_class
+from hydra.utils import get_class, get_method
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
     search_space_to_config_space,
 )
@@ -28,6 +28,7 @@ from smac.facade.multi_fidelity_facade import MultiFidelityFacade
 log = logging.getLogger(__name__)
 
 OmegaConf.register_new_resolver("get_class", get_class, replace=True)
+OmegaConf.register_new_resolver("get_method", get_method, replace=True)
 
 
 class SMACSweeperBackend(Sweeper):
@@ -165,6 +166,17 @@ class SMACSweeperBackend(Sweeper):
 
         scenario = Scenario(**scenario_kwargs)
         smac_kwargs["scenario"] = scenario
+
+        # If we have a custom intensifier we need to instantiate ourselves
+        # because the helper methods in the facades expect a scenario.
+        # Here it is easier to instantiate than completely via the yaml file.
+        if "intensifier" in smac_kwargs and "intensifier_kwargs" in smac_kwargs:
+            # Get, delete and update intensifier kwargs
+            intensifier_kwargs = smac_kwargs["intensifier_kwargs"]
+            del smac_kwargs["intensifier_kwargs"]
+            intensifier_kwargs["scenario"] = scenario
+            # Build intensifier
+            smac_kwargs["intensifier"] = smac_kwargs["intensifier"](**intensifier_kwargs)
 
         printr(smac_class, smac_kwargs)
 
