@@ -49,7 +49,7 @@ def mlp_from_cfg(cfg: DictConfig):
     -------
     float
     """
-    log.info(OmegaConf.to_yaml(cfg))
+    log.info("Config\n" + OmegaConf.to_yaml(cfg, resolve=True))
 
     # For deactivated parameters, the configuration stores None-values.
     # This is not accepted by the MLP, so we replace them with placeholder values.
@@ -74,6 +74,8 @@ def mlp_from_cfg(cfg: DictConfig):
         # returns the cross validation accuracy
         cv = StratifiedKFold(n_splits=5, random_state=cfg.seed, shuffle=True)  # to make CV splits consistent
         score = cross_val_score(mlp, digits.data, digits.target, cv=cv, error_score="raise")
+
+    log.info(f"Mean Score: {np.mean(score)}")
 
     return 1 - np.mean(score)
 
