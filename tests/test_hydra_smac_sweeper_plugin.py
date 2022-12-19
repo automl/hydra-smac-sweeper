@@ -23,7 +23,7 @@ from hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend import SMACSweeperBac
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
 from omegaconf import DictConfig, OmegaConf
 from pytest import mark
-from smac.facade.smac_ac_facade import SMAC4AC
+from smac.facade.hyperparameter_optimization_facade import HyperparameterOptimizationFacade
 
 chdir_plugin_root()
 
@@ -117,7 +117,7 @@ def test_search_space_parsing_value_error() -> None:
         ),
         DictConfig(
             content={
-                "smac_class": "smac.facade.smac_hpo_facade.SMAC4HPO",
+                "smac_class": "smac.facade.hyperparameter_optimization_facade.HyperparameterOptimizationFacade",
                 "smac_kwargs": None,
             }
         ),
@@ -129,15 +129,15 @@ def test_smac_sweeper_args(kwargs: DictConfig):
     search_space = "tests/configspace_a.json"
     default_kwargs = dict(
         search_space=search_space,
-        n_trials=10,
         n_jobs=1,
-        seed=333,
         smac_kwargs=dict(
-            scenario={
-                "run_obj": "quality",
-                "deterministic": "true",
-            }
+            
         ),
+        scenario={
+            "seed": 33,
+            "deterministic": "true",
+            "n_trials": 12
+        }
     )
     kwargs.update(default_kwargs)
     # kwargs = OmegaConf.create(kwargs)
@@ -153,7 +153,7 @@ def test_smac_sweeper_args(kwargs: DictConfig):
 
     target_smac_class = kwargs.get("smac_class")
     if target_smac_class is None:
-        assert type(smac) == SMAC4AC
+        assert type(smac) == HyperparameterOptimizationFacade
     else:
         assert type(smac) == get_class(target_smac_class)
 
@@ -171,8 +171,8 @@ def test_smac_example(with_commandline: bool, tmpdir: Path) -> None:
         "examples/branin.py",
         "hydra.run.dir=" + str(tmpdir),
         "hydra.sweep.dir=" + str(tmpdir),
-        "hydra.sweeper.n_trials=10",
-        "hydra.sweeper.seed=123",
+        "hydra.sweeper.scenario.n_trials=10",
+        "hydra.sweeper.scenario.seed=123",
         "+hydra/launcher=submitit_smac_local",
         "hydra.sweeper.n_jobs=1",
         "--multirun",

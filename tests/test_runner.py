@@ -9,11 +9,10 @@ import dask  # noqa
 from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
 from omegaconf import DictConfig, OmegaConf
-from smac.configspace import ConfigurationSpace, UniformFloatHyperparameter
-from smac.runhistory.runhistory import RunInfo, RunValue
-from smac.scenario.scenario import Scenario
-from smac.stats.stats import Stats
-from smac.tae import StatusType
+from smac.utils.configspace import ConfigurationSpace, UniformFloatHyperparameter
+from smac.runhistory import TrialInfo, TrialValue
+from smac.runhistory.enumerations import StatusType
+from smac.scenario import Scenario
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
@@ -45,51 +44,46 @@ def target_wrapper(target_function) -> callable:
     return target
 
 
-def get_runner(ta, stats, n_jobs: int = 2) -> SubmititRunner:
-    ta = target_wrapper(ta)
-    launcher = SMACLocalLauncher()
-    config = OmegaConf.create(
-        {
-            "hydra": {"sweep": {"dir": "./tmp"}},
-            "x": 3,
-            "instance": 0,
-            "seed": 55,
-        }
-    )
-    launcher.config = config
-    launcher.params["progress"] = "rich"
-    launcher.params["progress_slurm_refresh_interval"] = 1
-    launcher.params["submitit_folder"] = "./tmp"
-    return SubmititRunner(ta=ta, n_jobs=n_jobs, launcher=launcher, budget_variable="", stats=stats, run_obj="quality")
-
-
 class TestSubmititRunner(unittest.TestCase):
     def setUp(self):
         self.cs = create_configspace()
-        self.scenario = Scenario({"cs": self.cs, "run_obj": "quality", "output_dir": ""})
-        self.stats = Stats(scenario=self.scenario)
+        self.scenario = Scenario(**{"configspace": self.cs, "output_directory": ""})
 
-    @patch("SMACLocalLauncher.", return_value=9)
+    def get_runner(self, ta, n_jobs: int = 2) -> SubmititRunner:
+        ta = target_wrapper(ta)
+        launcher = SMACLocalLauncher()
+        config = OmegaConf.create(
+            {
+                "hydra": {"sweep": {"dir": "./tmp"}},
+                "x": 3,
+                "instance": 0,
+                "seed": 55,
+            }
+        )
+        launcher.config = config
+        launcher.params["progress"] = "rich"
+        launcher.params["progress_slurm_refresh_interval"] = 1
+        launcher.params["submitit_folder"] = "./tmp"
+        return SubmititRunner(target_function=ta, scenario=self.scenario, n_jobs=n_jobs, launcher=launcher, budget_variable="")
+
+    #@patch("SMACLocalLauncher.", return_value=9)
     def test_run(self):
         """Makes sure that we are able to run a configuration and
         return the expected values/types"""
-        runner = get_runner(ta=target, stats=self.stats)
+        runner = self.get_runner(ta=target)
 
         # We use the funcdict as a mechanism to test Parallel Runner
         self.assertIsInstance(runner, SubmititRunner)
 
-        run_info = RunInfo(
+        trial_info = TrialInfo(
             config=self.cs.sample_configuration(),
             instance="test",
-            instance_specific="0",
             seed=0,
-            cutoff=None,
-            capped=False,
             budget=0.0,
         )
 
         # submit runs! then get the value
-        runner.submit_run(run_info)
+        runner.submit_trial(trial_info)
         run_values = runner.get_finished_runs()
         # Run will not have finished so fast
         self.assertEqual(len(run_values), 0)
@@ -97,8 +91,8 @@ class TestSubmititRunner(unittest.TestCase):
         run_values = runner.get_finished_runs()
         self.assertEqual(len(run_values), 1)
         self.assertIsInstance(run_values, list)
-        self.assertIsInstance(run_values[0][0], RunInfo)
-        self.assertIsInstance(run_values[0][1], RunValue)
+        self.assertIsInstance(run_values[0][0], TrialInfo)
+        self.assertIsInstance(run_values[0][1], TrialValue)
         self.assertEqual(run_values[0][1].cost, 4)
         self.assertEqual(run_values[0][1].status, StatusType.SUCCESS)
 
@@ -107,28 +101,22 @@ class TestSubmititRunner(unittest.TestCase):
         closely in time together"""
 
         # We use the funcdict as a mechanism to test Runner
-        runner = get_runner(ta=target_delayed, stats=self.stats)
+        runner = self.get_runner(ta=target_delayed)
 
-        run_info = RunInfo(
+        trial_info = TrialInfo(
             config=self.cs.sample_configuration(),
             instance="test",
-            instance_specific="0",
             seed=0,
-            cutoff=None,
-            capped=False,
             budget=0.0,
         )
-        runner.submit_run(run_info)
-        run_info = RunInfo(
+        runner.submit_trial(trial_info)
+        trial_info = TrialInfo(
             config=self.cs.sample_configuration(),
             instance="test",
-            instance_specific="0",
             seed=0,
-            cutoff=None,
-            capped=False,
             budget=0.0,
         )
-        runner.submit_run(run_info)
+        runner.submit_trial(trial_info)
 
         # At this stage, we submitted 2 jobs, that are running in remote
         # workers. We have to wait for each one of them to complete. The
@@ -162,8 +150,8 @@ class TestSubmititRunner(unittest.TestCase):
         """Make sure we can properly return the number of workers"""
 
         # We use the funcdict as a mechanism to test Runner
-        runner = get_runner(ta=target_delayed, stats=self.stats, n_jobs=2)
-        self.assertEqual(runner.num_workers(), 2)
+        runner = self.get_runner(ta=target_delayed, n_jobs=2)
+        self.assertEqual(runner.n_jobs, 2)
 
         # Reduce the number of workers
         # have to give time for the worker to be killed
@@ -212,20 +200,17 @@ class TestSubmititRunner(unittest.TestCase):
         def target_nonpickable(x, seed, instance):
             return x**2, {"key": seed, "instance": instance}
 
-        runner = get_runner(ta=target_nonpickable, stats=self.stats)
+        runner = self.get_runner(ta=target_nonpickable)
 
-        run_info = RunInfo(
+        trial_info = TrialInfo(
             config=self.cs.sample_configuration(),
             instance="test",
-            instance_specific="0",
             seed=0,
-            cutoff=None,
-            capped=False,
             budget=0.0,
         )
-        runner.submit_run(run_info)
+        runner.submit_trial(trial_info)
         runner.wait()
-        run_info, result = runner.get_finished_runs()[0]
+        trial_info, result = runner.get_finished_runs()[0]
 
         # Make sure the traceback message is included
         self.assertIn("traceback", result.additional_info)

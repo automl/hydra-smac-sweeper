@@ -145,11 +145,11 @@ class SubmititRunner(AbstractRunner):  # TODO check if correct class to inherit 
 
         self.job_idx += len(jobs)
 
-    def _diff_overrides(self, run_info: TrialInfo):
-        run_info_cfg_flat = flatten_dict(run_info.config.get_dictionary())
+    def _diff_overrides(self, trial_info: TrialInfo):
+        trial_info_cfg_flat = flatten_dict(trial_info.config.get_dictionary())
 
         diff_overrides = []
-        for key, val in run_info_cfg_flat.items():
+        for key, val in trial_info_cfg_flat.items():
             if key in self.base_cfg_flat.keys():
                 if val != self.base_cfg_flat[key]:
                     diff_overrides.append(f"{key}={val}")
@@ -165,7 +165,7 @@ class SubmititRunner(AbstractRunner):  # TODO check if correct class to inherit 
 
         # diff_overrides = [
         #     tuple(f"{key}={val1}"
-        #           for key, val1 in run_info_cfg_flat.items()
+        #           for key, val1 in trial_info_cfg_flat.items()
         #           if key in self.base_cfg_flat.keys() and val1 != self.base_cfg_flat[key])]
 
         return [tuple(diff_overrides)]
@@ -197,7 +197,7 @@ class SubmititRunner(AbstractRunner):  # TODO check if correct class to inherit 
         Returns
         -------
         list[TrialInfo, TrialValue]: A list of TrialValues (and respective TrialInfo), that is,
-            the results of executing a run_info and a submitted configuration.
+            the results of executing a trial_info and a submitted configuration.
         """
 
         # Proactively see if more configs have finished
@@ -205,9 +205,9 @@ class SubmititRunner(AbstractRunner):  # TODO check if correct class to inherit 
 
         results_list: list[tuple[TrialInfo, TrialValue]] = []
         while self.results:
-            # run_info, job = self.results.pop()
+            # trial_info, job = self.results.pop()
             job_info = self.results.pop()
-            run_info, job = job_info.run_info, job_info.job
+            trial_info, job = job_info.trial_info, job_info.job
             ret = job.result()
             endtime = time.time()
             run_value = TrialValue(
@@ -218,7 +218,7 @@ class SubmititRunner(AbstractRunner):  # TODO check if correct class to inherit 
                 endtime=endtime,
                 additional_info=None,
             )
-            results_list.append((run_info, run_value))
+            results_list.append((trial_info, run_value))
         return results_list
 
     def _extract_completed_runs_from_futures(self) -> None:
