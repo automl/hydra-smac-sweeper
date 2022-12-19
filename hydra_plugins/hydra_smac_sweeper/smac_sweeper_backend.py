@@ -23,6 +23,7 @@ from ConfigSpace import ConfigurationSpace, Configuration
 # from smac.configspace import Configuration, ConfigurationSpace
 # from smac.facade.smac_ac_facade import SMAC4AC
 from smac.scenario import Scenario
+from smac.facade.multi_fidelity_facade import MultiFidelityFacade
 # from smac.stats.stats import Stats
 
 log = logging.getLogger(__name__)
@@ -131,6 +132,12 @@ class SMACSweeperBackend(Sweeper):
             smac_class = "smac.facade.multi_fidelity_facade.MultiFidelityFacade"
             smac_class = get_class(smac_class)
 
+        if smac_class == MultiFidelityFacade and self.budget_variable is None:
+            raise ValueError("Please specify `budget_variable` in the sweeper config, e.g. "
+                            "`hydra.sweeper.budget_variable=epochs`. The budget variable tells our "
+                            "sweeper which variable represents the fidelity.")
+
+
         # Setup other SMAC kwargs
         smac_kwargs = {}
         if self.smac_kwargs is not None:
@@ -206,7 +213,7 @@ class SMACSweeperBackend(Sweeper):
         smac = self.setup_smac()
 
         incumbent = smac.optimize()
-        smac.stats.print()
+        smac._optimizer.print_stats()
         log.info(f"Final Incumbent: {incumbent}")
         if incumbent is not None:
             incumbent_cost = smac.runhistory.get_cost(incumbent)
