@@ -1,6 +1,6 @@
 defaults:
   - override hydra/sweeper: SMAC
-  - override hydra/launcher: submitit_smac_slurm
+  - override hydra/launcher: submitit_smac_local
 
 learning_rate: constant
 learning_rate_init: 0.001
@@ -15,26 +15,25 @@ epochs: 10
 max_epochs: 50 # Smac's Multi-fidelity maximum value for the budget_variable
 
 hydra:
-  launcher:
-    partition: cpu_normal
+  # launcher:
+  #   partition: cpu_normal
   sweeper:
     budget_variable: epochs  # string! telling the sweeper the name of the budget variable,
     # such that it can override it (as it does in the Multi-fidelity setup)!
-    seed: ${seed}
     n_jobs: 4
-    n_trials: 45
-    smac_class: smac.facade.smac_mf_facade.SMAC4MF
+    smac_class: smac.facade.multi_fidelity_facade.MultiFidelityFacade
+    scenario:
+      n_trials: 45
+      seed: ${seed}
+      min_budget: 5
+      max_budget: ${max_epochs}  # at most 50 epochs
+      deterministic: true
+      #      wallclock_limit: 100
+      trial_walltime_limit: 30  # runtime limit for target algorithm
+      trial_memory_limit: 3072  # adapt this to reasonable value for your hardware
     smac_kwargs:
-      scenario:
-        run_obj: quality
-        deterministic: true
-        #      wallclock_limit: 100
-        cutoff: 30  # runtime limit for target algorithm
-        memory_limit: 3072  # adapt this to reasonable value for your hardware
-      intensifier: ${get_class:smac.intensification.hyperband.Hyperband}
+      intensifier: ${get_method:smac.facade.multi_fidelity_facade.MultiFidelityFacade.get_intensifier}
       intensifier_kwargs:
-        initial_budget: 5  # start with 5 epochs
-        max_budget: ${max_epochs}  # at most 50 epochs
         eta: 3
     search_space:
       hyperparameters:
