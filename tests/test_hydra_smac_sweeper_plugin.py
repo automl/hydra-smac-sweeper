@@ -164,26 +164,25 @@ def test_smac_sweeper_args(kwargs: DictConfig):
     # pass
 
 
-@mark.parametrize("with_commandline", (True,))
-def test_smac_example(with_commandline: bool, tmpdir: Path) -> None:
+def test_smac_example(tmpdir: Path) -> None:
     print(tmpdir)
+    seed = 123
     cmd = [
         "examples/branin.py",
         "hydra.run.dir=" + str(tmpdir),
         "hydra.sweep.dir=" + str(tmpdir),
         "hydra.sweeper.scenario.n_trials=10",
-        "hydra.sweeper.scenario.seed=123",
+        f"hydra.sweeper.scenario.seed={seed}",
+        "+hydra.sweeper.scenario.name=testrun",
         "+hydra/launcher=submitit_smac_local",
         "hydra.sweeper.n_jobs=1",
         "--multirun",
     ]
     run_python_script(cmd, allow_warnings=True)
-    smac_dir = glob.glob(os.path.join(tmpdir, "run_*"))[0]
-    traj_fn = os.path.join(smac_dir, "traj.json")
-    with open(traj_fn, "r") as file:
-        lines = file.readlines()
-    trajectory = [json.loads(s) for s in lines]
-    last_cost = trajectory[-1]["cost"]
-
-    # 10 trials
-    assert last_cost <= 5.3719
+    smac_dir = os.path.join(tmpdir, "testrun")
+    runhistory_fn = os.path.join(smac_dir, str(seed), "runhistory.json")
+    with open(runhistory_fn, 'r') as file:
+        runhistory = json.load(file)
+    stats = runhistory["stats"]
+    # Check if 10 runs have finished
+    assert stats["finished"] == 10  
