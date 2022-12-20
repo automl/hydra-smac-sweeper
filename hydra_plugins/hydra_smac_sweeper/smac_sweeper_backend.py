@@ -148,7 +148,7 @@ class SMACSweeperBackend(Sweeper):
             self.configspace = search_space_to_config_space(search_space=self.search_space, seed=self.seed)
         scenario_kwargs = dict(
             configspace=self.configspace,
-            output_directory=self.config.hydra.sweep.dir,
+            output_directory=self.config.hydra.sweep.dir,  # TODO document that output directory is automatically set
             # n_trials=self.n_trials,
             # seed=self.seed,
         )
