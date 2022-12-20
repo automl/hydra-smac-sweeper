@@ -35,7 +35,7 @@ digits = load_digits()
 
 
 # Target Algorithm
-@hydra.main(config_path="configs", config_name="mlp")
+@hydra.main(config_path="configs", config_name="mlp", version_base="1.1")
 def mlp_from_cfg(cfg: DictConfig):
     """
     Creates a MLP classifier from sklearn and fits the given data on it.
