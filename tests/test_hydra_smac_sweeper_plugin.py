@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 
+import hydra_plugins.hydra_smac_sweeper
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 from examples.branin import branin
 from hydra.core.plugins import Plugins

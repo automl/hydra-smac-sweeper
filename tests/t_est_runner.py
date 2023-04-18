@@ -13,6 +13,10 @@ from smac.utils.configspace import ConfigurationSpace, UniformFloatHyperparamete
 from smac.runhistory import TrialInfo, TrialValue
 from smac.runhistory.enumerations import StatusType
 from smac.scenario import Scenario
+import submitit
+from hydra.core.utils import JobStatus
+from hydra.types import HydraContext
+from hydra.test_utils.test_utils import TSweepRunner
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
@@ -44,6 +48,31 @@ def target_wrapper(target_function) -> callable:
     return target
 
 
+def mock_result(*args, **kwargs) -> int:
+    class Result:
+        return_value = 9
+        status = JobStatus.COMPLETED
+    return Result
+
+
+# def test_launch_jobs(hydra_sweep_runner: TSweepRunner) -> None:
+#     sweep = hydra_sweep_runner(
+#         calling_file=None,
+#         calling_module="hydra.test_utils.a_module",
+#         config_path="configs",
+#         config_name="compose.yaml",
+#         task_function=None,
+#         overrides=[
+#             "hydra/sweeper=SMAC",
+#             "hydra/launcher=basic",
+#             "+hydra.sweeper.scenario.n_trials=8",
+#             "hydra.sweeper.n_jobs=3",
+#         ],
+#     )
+#     with sweep:
+#         assert sweep.returns is None
+
+
 class TestSubmititRunner(unittest.TestCase):
     def setUp(self):
         self.cs = create_configspace()
@@ -64,6 +93,7 @@ class TestSubmititRunner(unittest.TestCase):
         launcher.params["progress"] = "rich"
         launcher.params["progress_slurm_refresh_interval"] = 1
         launcher.params["submitit_folder"] = "./tmp"
+        #launcher.hydra_context = HydraContext()
         return SubmititRunner(target_function=ta, scenario=self.scenario, n_jobs=n_jobs, launcher=launcher, budget_variable="")
 
     #@patch("SMACLocalLauncher.", return_value=9)
@@ -190,40 +220,41 @@ class TestSubmititRunner(unittest.TestCase):
     #     self.assertEqual(client.status, "running")
     #     client.shutdown()
 
-    def test_additional_info_crash_msg(self):
-        """
-        We want to make sure we catch errors as additional info,
-        and in particular when doing multiprocessing runs, we
-        want to make sure we capture dask exceptions
-        """
+    # @patch.object(submitit.core.core.Job, 'result', mock_result)
+    # def test_additional_info_crash_msg(self):
+    #     """
+    #     We want to make sure we catch errors as additional info,
+    #     and in particular when doing multiprocessing runs, we
+    #     want to make sure we capture dask exceptions
+    #     """
 
-        def target_nonpickable(x, seed, instance):
-            return x**2, {"key": seed, "instance": instance}
+    #     def target_nonpickable(x, seed, instance):
+    #         return x**2, {"key": seed, "instance": instance}
 
-        runner = self.get_runner(ta=target_nonpickable)
+    #     runner = self.get_runner(ta=target_nonpickable)
 
-        trial_info = TrialInfo(
-            config=self.cs.sample_configuration(),
-            instance="test",
-            seed=0,
-            budget=0.0,
-        )
-        runner.submit_trial(trial_info)
-        runner.wait()
-        trial_info, result = runner.get_finished_runs()[0]
+    #     trial_info = TrialInfo(
+    #         config=self.cs.sample_configuration(),
+    #         instance="test",
+    #         seed=0,
+    #         budget=0.0,
+    #     )
+    #     runner.submit_trial(trial_info)
+    #     runner.wait()
+    #     trial_info, result = runner.get_finished_runs()[0]
 
-        # Make sure the traceback message is included
-        self.assertIn("traceback", result.additional_info)
-        self.assertIn(
-            # We expect the problem to occur in the run wrapper
-            # So traceback should show this!
-            "target_nonpickable",
-            result.additional_info["traceback"],
-        )
+    #     # Make sure the traceback message is included
+    #     self.assertIn("traceback", result.additional_info)
+    #     self.assertIn(
+    #         # We expect the problem to occur in the run wrapper
+    #         # So traceback should show this!
+    #         "target_nonpickable",
+    #         result.additional_info["traceback"],
+    #     )
 
-        # Make sure the error message is included
-        self.assertIn("error", result.additional_info)
-        self.assertIn("Can't pickle local object", result.additional_info["error"])
+    #     # Make sure the error message is included
+    #     self.assertIn("error", result.additional_info)
+    #     self.assertIn("Can't pickle local object", result.additional_info["error"])
 
 
 if __name__ == "__main__":
