@@ -2,6 +2,16 @@ defaults:
   - override hydra/sweeper: SMAC
   - override hydra/launcher: submitit_smac_local
 
+cluster:
+  _target_: dask_jobqueue.SLURMCluster
+  queue: cpu_short
+  #  account: myaccount
+  cores: 1
+  memory: 1 GB
+  walltime: 00:30:00
+  processes: 1
+  log_directory: tmp/smac_dask_slurm
+
 hydra:
 #  launcher:
 #    partition: cpu_short
@@ -10,11 +20,15 @@ hydra:
 #    gres: null
 #    timeout_min: 10
   sweeper:
-    n_jobs: 8
     scenario:
       seed: 42
       n_trials: 40
       deterministic: true
+      n_workers: 3
+    smac_kwargs:
+      dask_client:
+        _target_: dask.distributed.Client
+        address: ${create_cluster:${cluster},${hydra.sweeper.scenario.n_workers}}
     search_space:  # TODO adjust search space
       hyperparameters:
         x0:

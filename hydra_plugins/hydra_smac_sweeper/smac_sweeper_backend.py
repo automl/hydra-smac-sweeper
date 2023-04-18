@@ -9,7 +9,7 @@ import numpy as np
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
-from hydra.utils import get_class, get_method
+from hydra.utils import get_class, get_method, instantiate
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
     search_space_to_config_space,
 )
@@ -23,12 +23,22 @@ from ConfigSpace import ConfigurationSpace, Configuration
 # from smac.facade.smac_ac_facade import SMAC4AC
 from smac.scenario import Scenario
 from smac.facade.multi_fidelity_facade import MultiFidelityFacade
+from smac.runner import TargetFunctionRunner
+
+from dask_jobqueue import SLURMCluster
+from dask.distributed import Client
 # from smac.stats.stats import Stats
 
 log = logging.getLogger(__name__)
 
+def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1):
+    cluster = instantiate(cluster_cfg)
+    cluster.scale(jobs=n_workers)
+    return cluster
+
 OmegaConf.register_new_resolver("get_class", get_class, replace=True)
 OmegaConf.register_new_resolver("get_method", get_method, replace=True)
+OmegaConf.register_new_resolver("create_cluster", create_cluster)
 
 
 class SMACSweeperBackend(Sweeper):
@@ -36,9 +46,6 @@ class SMACSweeperBackend(Sweeper):
         self,
         search_space: DictConfig | str | ConfigurationSpace,
         scenario: DictConfig,
-        # n_trials: int,
-        n_jobs: int,
-        # seed: int | None = None,
         smac_class: str | None = None,
         smac_kwargs: DictConfig | None = None,
         budget_variable: str | None = None,
@@ -51,12 +58,8 @@ class SMACSweeperBackend(Sweeper):
         search_space: DictConfig | str | ConfigurationSpace
             The search space, either a DictConfig from a hydra yaml config file, or a path to a json configuration space
             file in the format required of ConfigSpace, or already a ConfigurationSpace config space.
-        n_trials: int
-            Number of evaluations of the target algorithm.
-        n_jobs: int
-            Number of parallel jobs / workers.
-        seed: int | None
-            Seed for instantiating the random generator and seeding the configuration space.
+        scenario: DictConfig
+            Kwargs for scenario        
         smac_class: str | None
             Optional string defining the smac class, e.g. "smac.facade.smac_ac_facade.SMAC4AC".
         smac_kwargs: DictConfig | None
@@ -74,12 +77,8 @@ class SMACSweeperBackend(Sweeper):
         self.smac_class = smac_class
         self.smac_kwargs = smac_kwargs
         self.scenario = scenario
-        self.n_jobs = n_jobs
-        # self.seed = seed
-        # self.n_trials = n_trials
         self.budget_variable = budget_variable
         self.seed = self.scenario.get("seed", None)
-        # self.rng = np.random.RandomState(self.seed)
 
         self.task_function: TaskFunction | None = None
         self.sweep_dir: str | None = None
@@ -133,6 +132,7 @@ class SMACSweeperBackend(Sweeper):
             smac_class = get_class(smac_class)
 
         if smac_class == MultiFidelityFacade and self.budget_variable is None:
+            # TODO check MF with new DASK
             raise ValueError("Please specify `budget_variable` in the sweeper config, e.g. "
                             "`hydra.sweeper.budget_variable=epochs`. The budget variable tells our "
                             "sweeper which variable represents the fidelity.")
@@ -149,20 +149,10 @@ class SMACSweeperBackend(Sweeper):
         scenario_kwargs = dict(
             configspace=self.configspace,
             output_directory=self.config.hydra.sweep.dir,  # TODO document that output directory is automatically set
-            # n_trials=self.n_trials,
-            # seed=self.seed,
         )
         # scenario = smac_kwargs.get("scenario", None)
         if self.scenario is not None:
             scenario_kwargs.update(self.scenario)
-        
-        n_workers = scenario_kwargs.get("n_workers", None)
-        if n_workers is not None and n_workers > 1:
-            raise ValueError("n_workers in scenario must be 1 because otherwise "
-                             "SMAC wraps our runner handling multiple jobs again "
-                             f"in a runner for multiple jobs. Got n_workers={n_workers}. "
-                             "If you want to set the number of workers, set n_jobs ."
-                             "(in your config yaml file: hydra.sweeper.n_jobs).")
 
         scenario = Scenario(**scenario_kwargs)
         smac_kwargs["scenario"] = scenario
@@ -180,16 +170,14 @@ class SMACSweeperBackend(Sweeper):
 
         printr(smac_class, smac_kwargs)
 
-        target_function = SubmititRunner(
+        single_worker = TargetFunctionRunner(
             scenario=scenario,
-            launcher=self.launcher,
-            budget_variable=self.budget_variable,
             target_function=self.task_function,
-            n_jobs=self.n_jobs
+            required_arguments=[]
         )
 
         smac = smac_class(
-            target_function=target_function,
+            target_function=single_worker,
             **smac_kwargs,
         )
 
