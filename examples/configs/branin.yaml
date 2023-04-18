@@ -1,6 +1,5 @@
 defaults:
   - override hydra/sweeper: SMAC
-  - override hydra/launcher: submitit_smac_local
 
 cluster:
   _target_: dask_jobqueue.SLURMCluster

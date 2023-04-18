@@ -13,10 +13,6 @@ from hydra.utils import get_class, get_method, instantiate
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
     search_space_to_config_space,
 )
-from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
-from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import (
-    SubmititSmacLauncherMixin,
-)
 from omegaconf import DictConfig, OmegaConf
 from ConfigSpace import ConfigurationSpace, Configuration
 # from smac.configspace import Configuration, ConfigurationSpace
@@ -205,8 +201,8 @@ class SMACSweeperBackend(Sweeper):
         printr("Config", self.config)
         printr("Hydra context", self.hydra_context)
 
-        cast(SubmititSmacLauncherMixin, self.launcher).global_overrides = arguments
-        log.info(f"Sweep overrides: {' '.join(arguments)}")
+        if len(arguments) > 0:
+            raise ValueError("Override arguments do not have any effect.", arguments)
 
         smac = self.setup_smac()
 
