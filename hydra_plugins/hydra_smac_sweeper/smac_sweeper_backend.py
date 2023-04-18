@@ -44,7 +44,6 @@ class SMACSweeperBackend(Sweeper):
         scenario: DictConfig,
         smac_class: str | None = None,
         smac_kwargs: DictConfig | None = None,
-        budget_variable: str | None = None,
     ) -> None:
         """
         Backend for the SMAC sweeper. Instantiate and launch SMAC's optimization.
@@ -60,9 +59,7 @@ class SMACSweeperBackend(Sweeper):
             Optional string defining the smac class, e.g. "smac.facade.smac_ac_facade.SMAC4AC".
         smac_kwargs: DictConfig | None
             Kwargs for the smac class from the yaml config file.
-        budget_variable: str | None
-            Name of the variable controlling the budget, e.g. max_epochs. Only relevant for multi-fidelity methods.
-
+  
         Returns
         -------
         None
@@ -73,7 +70,6 @@ class SMACSweeperBackend(Sweeper):
         self.smac_class = smac_class
         self.smac_kwargs = smac_kwargs
         self.scenario = scenario
-        self.budget_variable = budget_variable
         self.seed = self.scenario.get("seed", None)
 
         self.task_function: TaskFunction | None = None
@@ -126,13 +122,6 @@ class SMACSweeperBackend(Sweeper):
         else:
             smac_class = "smac.facade.hyperparameter_optimization_facade.HyperparameterOptimizationFacade"
             smac_class = get_class(smac_class)
-
-        if smac_class == MultiFidelityFacade and self.budget_variable is None:
-            # TODO check MF with new DASK
-            raise ValueError("Please specify `budget_variable` in the sweeper config, e.g. "
-                            "`hydra.sweeper.budget_variable=epochs`. The budget variable tells our "
-                            "sweeper which variable represents the fidelity.")
-
 
         # Setup other SMAC kwargs
         smac_kwargs = {}
