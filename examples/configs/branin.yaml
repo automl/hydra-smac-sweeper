@@ -1,15 +1,7 @@
 defaults:
+  - _self_
+  - hpc
   - override hydra/sweeper: SMAC
-
-cluster:
-  _target_: dask_jobqueue.SLURMCluster
-  queue: cpu_short
-  #  account: myaccount
-  cores: 1
-  memory: 1 GB
-  walltime: 00:30:00
-  processes: 1
-  log_directory: tmp/smac_dask_slurm
 
 hydra:
   sweeper:
