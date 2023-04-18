@@ -3,12 +3,6 @@ from typing import Any, Dict, Optional
 from dataclasses import dataclass, field
 
 from hydra.core.config_store import ConfigStore
-from hydra_plugins.hydra_submitit_launcher.config import (
-    BaseQueueConf,
-    LocalQueueConf,
-    SlurmQueueConf,
-)
-
 
 @dataclass
 class SMACSweeperConfig:
