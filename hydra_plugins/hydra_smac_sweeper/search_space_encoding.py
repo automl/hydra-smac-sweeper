@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-
+from typing import Any
 from ConfigSpace import ConfigurationSpace  # type: ignore[import]
 from ConfigSpace.read_and_write import json as csjson  # type: ignore[import]
 from omegaconf import DictConfig, ListConfig
@@ -13,7 +13,7 @@ class JSONCfgEncoder(json.JSONEncoder):
     Convert DictConfigs to normal dicts.
     """
 
-    def default(self, obj):
+    def default(self, obj: DictConfig | ListConfig | Any) -> Any:
         if isinstance(obj, DictConfig):
             return dict(obj)
         elif isinstance(obj, ListConfig):

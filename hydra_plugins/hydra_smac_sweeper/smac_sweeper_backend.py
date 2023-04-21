@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from ConfigSpace import Configuration, ConfigurationSpace  # type: ignore[import]
 from hydra.core.plugins import Plugins
@@ -15,11 +16,13 @@ from omegaconf import DictConfig, OmegaConf
 from rich import print as printr
 from smac.runner import DaskParallelRunner
 from smac.scenario import Scenario
+from dask_jobqueue import JobQueueCluster
+from smac.facade.abstract_facade import AbstractFacade
 
 log = logging.getLogger(__name__)
 
 
-def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1):
+def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1) -> JobQueueCluster:
     cluster = instantiate(cluster_cfg)
     cluster.scale(jobs=n_workers)
     return cluster
@@ -97,7 +100,7 @@ class SMACSweeperBackend(Sweeper):
         self.task_function = task_function
         self.sweep_dir = config.hydra.sweep.dir
 
-    def setup_smac(self):
+    def setup_smac(self) -> AbstractFacade:
         """
         Setup SMAC.
 
@@ -109,6 +112,7 @@ class SMACSweeperBackend(Sweeper):
             Instance of a SMAC facade.
 
         """
+        assert self.task_function is not None
         # Select SMAC Facade
         if self.smac_class is not None:
             smac_class = get_class(self.smac_class)
@@ -162,7 +166,7 @@ class SMACSweeperBackend(Sweeper):
 
         def target_function(
             config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None
-        ):
+        ) -> Any:
             # Translate SMAC's function signature back to hydra DictConfig
             cfg = self.config  # hydra config
             for k, v in dict(config).items():
@@ -171,7 +175,7 @@ class SMACSweeperBackend(Sweeper):
             OmegaConf.update(cfg, "budget", budget, force_add=True)
             OmegaConf.update(cfg, "instance", instance, force_add=True)
 
-            return self.task_function(cfg=cfg)
+            return self.task_function(cfg=cfg)  # type: ignore[misc]
 
         smac = smac_class(
             target_function=target_function,
