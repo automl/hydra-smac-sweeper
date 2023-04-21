@@ -17,16 +17,14 @@ __license__ = "3-clause BSD"
 
 
 import warnings
-import numpy as np
-
-from sklearn.datasets import load_digits
-from sklearn.exceptions import ConvergenceWarning
-from sklearn.model_selection import cross_val_score, StratifiedKFold
-from sklearn.neural_network import MLPClassifier
 
 import hydra
+import numpy as np
 from omegaconf import DictConfig
-
+from sklearn.datasets import load_digits
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.neural_network import MLPClassifier
 
 digits = load_digits()
 

@@ -4,12 +4,10 @@ e.g. by appending --basetemp=./tmp/pytest to your pytest command.
 """
 from typing import Union
 
-import glob
 import json
 import os
 from pathlib import Path
 
-import hydra_plugins.hydra_smac_sweeper
 import pytest
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 from examples.branin import branin
@@ -151,7 +149,8 @@ def test_search_space_parsing_value_error() -> None:
             content={
                 "smac_class": None,
                 "smac_kwargs": {
-                    "intensifier": "${get_method:smac.facade.hyperparameter_optimization_facade.HyperparameterOptimizationFacade.get_intensifier}",
+                    "intensifier": "${get_method:smac.facade.hyperparameter_"
+                    "optimization_facade.HyperparameterOptimizationFacade.get_intensifier}",
                     "intensifier_kwargs": {},
                 },
                 "search_space": "tests/configspace_a.json",

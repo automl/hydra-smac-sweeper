@@ -1,7 +1,6 @@
 import os
 
 import setuptools
-
 from hydra_plugins.hydra_smac_sweeper import (
     author,
     author_email,

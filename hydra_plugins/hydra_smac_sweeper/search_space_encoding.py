@@ -1,9 +1,9 @@
-from typing import Optional, Union
+from __future__ import annotations
 
 import json
 
-from ConfigSpace import ConfigurationSpace
-from ConfigSpace.read_and_write import json as csjson
+from ConfigSpace import ConfigurationSpace  # type: ignore[import]
+from ConfigSpace.read_and_write import json as csjson  # type: ignore[import]
 from omegaconf import DictConfig, ListConfig
 
 
@@ -30,7 +30,7 @@ class JSONCfgEncoder(json.JSONEncoder):
 
 
 def search_space_to_config_space(
-    search_space: Union[str, DictConfig, ConfigurationSpace], seed: Optional[int] = None
+    search_space: str | DictConfig | ConfigurationSpace, seed: int | None = None
 ) -> ConfigurationSpace:
     """
     Convert hydra search space to SMAC's configuration space.

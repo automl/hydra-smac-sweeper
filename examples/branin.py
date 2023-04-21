@@ -3,8 +3,8 @@ Branin
 ^^^^^^
 """
 
-import numpy as np
 import hydra
+import numpy as np
 from omegaconf import DictConfig
 
 __copyright__ = "Copyright 2022, AutoML.org Freiburg-Hannover"

@@ -1,7 +1,6 @@
 import automl_sphinx_theme
 
-from hydra_smac_sweeper import copyright, author, version, name
-
+from hydra_smac_sweeper import author, copyright, name, version
 
 options = {
     "copyright": copyright,

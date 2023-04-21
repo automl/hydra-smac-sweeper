@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from typing import List, cast
-
 import logging
 from pathlib import Path
 
-import numpy as np
-from ConfigSpace import Configuration, ConfigurationSpace
-from dask_jobqueue import SLURMCluster
+from ConfigSpace import Configuration, ConfigurationSpace  # type: ignore[import]
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
@@ -15,10 +11,9 @@ from hydra.utils import get_class, get_method, instantiate
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
     search_space_to_config_space,
 )
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from rich import print as printr
-from smac.facade.multi_fidelity_facade import MultiFidelityFacade
-from smac.runner import DaskParallelRunner, TargetFunctionRunner
+from smac.runner import DaskParallelRunner
 from smac.scenario import Scenario
 
 log = logging.getLogger(__name__)
@@ -185,13 +180,13 @@ class SMACSweeperBackend(Sweeper):
 
         return smac
 
-    def sweep(self, arguments: List[str]) -> Configuration | None:
+    def sweep(self, arguments: list[str]) -> Configuration | None:
         """
         Run optimization with SMAC.
 
         Parameters
         ----------
-        arguments: List[str]
+        arguments: list[str]
             Hydra overrides for the sweep.
 
         Returns
