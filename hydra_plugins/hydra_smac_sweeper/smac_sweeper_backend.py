@@ -4,6 +4,7 @@ from typing import List, cast
 
 import logging
 from rich import print as printr
+from pathlib import Path
 
 import numpy as np
 from hydra.core.plugins import Plugins
@@ -13,13 +14,13 @@ from hydra.utils import get_class, get_method, instantiate
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
     search_space_to_config_space,
 )
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig, OmegaConf, ListConfig
 from ConfigSpace import ConfigurationSpace, Configuration
 # from smac.configspace import Configuration, ConfigurationSpace
 # from smac.facade.smac_ac_facade import SMAC4AC
 from smac.scenario import Scenario
 from smac.facade.multi_fidelity_facade import MultiFidelityFacade
-from smac.runner import TargetFunctionRunner
+from smac.runner import TargetFunctionRunner, DaskParallelRunner
 
 from dask_jobqueue import SLURMCluster
 from dask.distributed import Client
@@ -34,7 +35,64 @@ def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1):
 
 OmegaConf.register_new_resolver("get_class", get_class, replace=True)
 OmegaConf.register_new_resolver("get_method", get_method, replace=True)
-OmegaConf.register_new_resolver("create_cluster", create_cluster)
+OmegaConf.register_new_resolver("create_cluster", create_cluster, replace=True)
+
+
+# def get_target_function(task_function: callable, cfg: DictConfig) -> callable:
+#     def target_function(config: Configuration, seed: int | None = None, budget: int | None = None):
+#         # Translate SMAC's function signature back to hydra DictConfig
+#         for k, v in dict(config).items():
+#             cfg[k] = v
+#         OmegaConf.update(cfg, "seed", seed, force_add=True)
+#         OmegaConf.update(cfg, "budget", budget, force_add=True)
+
+#         return task_function(cfg=cfg)
+    
+#     return target_function
+
+
+# class TargetFunction(object):
+#     def __init__(self, task_function: callable, cfg: DictConfig) -> None:
+#         self.task_function = task_function
+#         self.cfg = cfg
+
+#     def __call__(self, config: Configuration, seed: int | None = None, budget: int | None = None):
+#         # Translate SMAC's function signature back to hydra DictConfig
+#         for k, v in dict(config).items():
+#             self.cfg[k] = v
+#         OmegaConf.update(self.cfg, "seed", seed, force_add=True)
+#         OmegaConf.update(self.cfg, "budget", budget, force_add=True)
+
+#         return self.task_function(cfg=self.cfg)
+    
+# import functools
+# class TargetFunction(object):
+#     def __init__(self, task_function: callable, cfg: DictConfig) -> None:
+#         self.task_function = task_function
+#         try:
+#             functools.update_wrapper(self, task_function)
+#         except:
+#             pass
+#         self.cfg = cfg
+
+#     def __call__(self, config: Configuration, seed: int | None = None, budget: int | None = None):
+#         # Translate SMAC's function signature back to hydra DictConfig
+#         for k, v in dict(config).items():
+#             self.cfg[k] = v
+#         OmegaConf.update(self.cfg, "seed", seed, force_add=True)
+#         OmegaConf.update(self.cfg, "budget", budget, force_add=True)
+
+#         return self.task_function(cfg=self.cfg)
+    
+
+# def target_function_prototype(task_function: callable, cfg: DictConfig, config: Configuration, seed: int | None = None, budget: int | None = None):
+#     # Translate SMAC's function signature back to hydra DictConfig
+#     for k, v in dict(config).items():
+#         cfg[k] = v
+#     OmegaConf.update(cfg, "seed", seed, force_add=True)
+#     OmegaConf.update(cfg, "budget", budget, force_add=True)
+
+#     return task_function(cfg=cfg)
 
 
 class SMACSweeperBackend(Sweeper):
@@ -133,13 +191,19 @@ class SMACSweeperBackend(Sweeper):
             self.configspace = search_space_to_config_space(search_space=self.search_space, seed=self.seed)
         scenario_kwargs = dict(
             configspace=self.configspace,
-            output_directory=self.config.hydra.sweep.dir,  # TODO document that output directory is automatically set
+            output_directory=Path(self.config.hydra.sweep.dir) / "smac3_output",  # TODO document that output directory is automatically set
         )
-        # scenario = smac_kwargs.get("scenario", None)
-        if self.scenario is not None:
-            scenario_kwargs.update(self.scenario)
+        # We always expect scenario kwargs from the user
+        _scenario_kwargs = OmegaConf.to_container(self.scenario, resolve=True)
+        scenario_kwargs.update(_scenario_kwargs)
 
         scenario = Scenario(**scenario_kwargs)
+
+        if scenario.trial_walltime_limit is not None or scenario.trial_memory_limit is not None:
+            raise ValueError("The hydra smac sweeper currently does not support resource "
+                            "limitation (scenario.trial_walltime_limit and "
+                            "scenario.trial_memory_limit should be None) due to "
+                            "pickling issues with multiprocessing.")
         smac_kwargs["scenario"] = scenario
 
         # If we have a custom intensifier we need to instantiate ourselves
@@ -151,13 +215,33 @@ class SMACSweeperBackend(Sweeper):
             del smac_kwargs["intensifier_kwargs"]
             intensifier_kwargs["scenario"] = scenario
             # Build intensifier
-            smac_kwargs["intensifier"] = smac_kwargs["intensifier"](**intensifier_kwargs)
+            smac_kwargs["intensifier"] = get_class(smac_kwargs["intensifier"])(**intensifier_kwargs)
 
         printr(smac_class, smac_kwargs)
 
+        def target_function(config: Configuration, seed: int | None = None, budget: int | None = None):
+            # Translate SMAC's function signature back to hydra DictConfig
+            cfg = self.config  # hydra config
+            for k, v in dict(config).items():
+                cfg[k] = v
+            OmegaConf.update(cfg, "seed", seed, force_add=True)
+            OmegaConf.update(cfg, "budget", budget, force_add=True)
+
+            return self.task_function(cfg=cfg)
+
+        # target_function = get_target_function(self.task_function, self.config)
+
+        # from functools import partial
+        # target_function = partial(target_function_prototype, task_function=self.task_function, cfg=self.config)
+
+        # target_function = self.task_function  # TargetFunction(task_function=self.task_function, cfg=self.config)
+        # from rich import inspect
+        # inspect(target_function)
+        # exit()
+
         single_worker = TargetFunctionRunner(
             scenario=scenario,
-            target_function=self.task_function,
+            target_function=target_function,
             required_arguments=[]
         )
 
@@ -196,6 +280,8 @@ class SMACSweeperBackend(Sweeper):
         smac = self.setup_smac()
 
         incumbent = smac.optimize()
+        if isinstance(smac._runner, DaskParallelRunner):
+            smac._runner.close(force=True)
         smac._optimizer.print_stats()
         log.info(f"Final Incumbent: {incumbent}")
         if incumbent is not None:
