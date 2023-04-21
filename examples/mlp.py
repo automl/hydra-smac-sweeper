@@ -15,7 +15,6 @@ This example is adapted from https://github.com/automl/SMAC3/blob/master/example
 __copyright__ = "Copyright 2022, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
 
-import logging
 
 import warnings
 import numpy as np
@@ -28,14 +27,28 @@ from sklearn.neural_network import MLPClassifier
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
 
 digits = load_digits()
+
+import functools
+from ConfigSpace import ConfigurationSpace, Configuration
+def my_decorator(task_function):
+    @functools.wraps(task_function)
+    def wrapper(cfg: DictConfig = None, config: Configuration = None, seed: int | None = None, budget: int | None = None):
+        # Translate SMAC's function signature back to hydra DictConfig
+        if config is not None:
+            for k, v in dict(config).items():
+                cfg[k] = v
+            OmegaConf.update(cfg, "seed", seed, force_add=True)
+            OmegaConf.update(cfg, "budget", budget, force_add=True)
+
+        return task_function(cfg=cfg)
+    return wrapper
 
 
 # Target Algorithm
 @hydra.main(config_path="configs", config_name="mlp", version_base="1.1")
+# @my_decorator
 def mlp_from_cfg(cfg: DictConfig):
     """
     Creates a MLP classifier from sklearn and fits the given data on it.
@@ -49,8 +62,6 @@ def mlp_from_cfg(cfg: DictConfig):
     -------
     float
     """
-    log.info("Config\n" + OmegaConf.to_yaml(cfg, resolve=True))
-
     # For deactivated parameters, the configuration stores None-values.
     # This is not accepted by the MLP, so we replace them with placeholder values.
     lr = cfg.learning_rate or "constant"
@@ -74,8 +85,6 @@ def mlp_from_cfg(cfg: DictConfig):
         # returns the cross validation accuracy
         cv = StratifiedKFold(n_splits=5, random_state=cfg.seed, shuffle=True)  # to make CV splits consistent
         score = cross_val_score(mlp, digits.data, digits.target, cv=cv, error_score="raise")
-
-    log.info(f"Mean Score: {np.mean(score)}")
 
     return 1 - np.mean(score)
 
