@@ -21,7 +21,6 @@ from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
 )
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper import SMACSweeper
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend import SMACSweeperBackend
-from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
 from omegaconf import DictConfig, OmegaConf
 from pytest import mark
 from smac.facade.hyperparameter_optimization_facade import HyperparameterOptimizationFacade
@@ -130,14 +129,14 @@ def test_smac_sweeper_args(kwargs: DictConfig):
     search_space = "tests/configspace_a.json"
     default_kwargs = dict(
         search_space=search_space,
-        n_jobs=1,
         smac_kwargs=dict(
             
         ),
         scenario={
             "seed": 33,
             "deterministic": "true",
-            "n_trials": 12
+            "n_trials": 12,
+            "n_workers": 1
         }
     )
     kwargs.update(default_kwargs)
@@ -145,10 +144,6 @@ def test_smac_sweeper_args(kwargs: DictConfig):
     sweeper = SMACSweeperBackend(**kwargs)
     config = OmegaConf.create({"hydra": {"sweep": {"dir": "./tmp"}}})
     sweeper.config = config
-    sweeper.launcher = SMACLocalLauncher()
-    sweeper.launcher.config = config
-    sweeper.launcher.params["progress"] = "rich"
-    sweeper.hydra_context = 1
     sweeper.task_function = branin
     smac = sweeper.setup_smac()
 
@@ -165,7 +160,8 @@ def test_smac_sweeper_args(kwargs: DictConfig):
     # pass
 
 
-def test_smac_example(tmpdir: Path) -> None:
+@mark.parametrize("n_workers", [1, 2])
+def test_smac_example(tmpdir: Path, n_workers: int) -> None:
     print(tmpdir)
     seed = 123
     cmd = [
@@ -175,12 +171,12 @@ def test_smac_example(tmpdir: Path) -> None:
         "hydra.sweeper.scenario.n_trials=10",
         f"hydra.sweeper.scenario.seed={seed}",
         "+hydra.sweeper.scenario.name=testrun",
-        "+hydra/launcher=submitit_smac_local",
-        "hydra.sweeper.n_jobs=1",
+        f"hydra.sweeper.scenario.n_workers={n_workers}",
+        "hydra.sweeper.smac_kwargs.dask_client=null",  # execute local
         "--multirun",
     ]
     run_python_script(cmd, allow_warnings=True)
-    smac_dir = os.path.join(tmpdir, "testrun")
+    smac_dir = os.path.join(tmpdir, "smac3_output", "testrun")
     runhistory_fn = os.path.join(smac_dir, str(seed), "runhistory.json")
     with open(runhistory_fn, 'r') as file:
         runhistory = json.load(file)
