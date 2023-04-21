@@ -8,9 +8,9 @@ import glob
 import json
 import os
 from pathlib import Path
-import pytest
 
 import hydra_plugins.hydra_smac_sweeper
+import pytest
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
 from examples.branin import branin
 from hydra.core.plugins import Plugins
@@ -24,7 +24,9 @@ from hydra_plugins.hydra_smac_sweeper.smac_sweeper import SMACSweeper
 from hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend import SMACSweeperBackend
 from omegaconf import DictConfig, OmegaConf
 from pytest import mark
-from smac.facade.hyperparameter_optimization_facade import HyperparameterOptimizationFacade
+from smac.facade.hyperparameter_optimization_facade import (
+    HyperparameterOptimizationFacade,
+)
 
 chdir_plugin_root()
 
@@ -115,12 +117,7 @@ def test_search_space_parsing_value_error() -> None:
                 "smac_class": None,
                 "smac_kwargs": None,
                 "search_space": "tests/configspace_a.json",
-                "scenario": {
-                    "seed": 33,
-                    "deterministic": "true",
-                    "n_trials": 12,
-                    "n_workers": 1
-                },
+                "scenario": {"seed": 33, "deterministic": "true", "n_trials": 12, "n_workers": 1},
             }
         ),
         DictConfig(
@@ -227,7 +224,6 @@ def test_smac_sweeper_sweep_resourcelimitation_error(kwargs: DictConfig):
         sweeper.setup_smac()
 
 
-
 @mark.parametrize("n_workers", [1, 2])
 def test_smac_example(tmpdir: Path, n_workers: int) -> None:
     print(tmpdir)
@@ -246,8 +242,8 @@ def test_smac_example(tmpdir: Path, n_workers: int) -> None:
     run_python_script(cmd, allow_warnings=True)
     smac_dir = os.path.join(tmpdir, "smac3_output", "testrun")
     runhistory_fn = os.path.join(smac_dir, str(seed), "runhistory.json")
-    with open(runhistory_fn, 'r') as file:
+    with open(runhistory_fn, "r") as file:
         runhistory = json.load(file)
     stats = runhistory["stats"]
     # Check if 10 runs have finished
-    assert stats["finished"] == 10  
+    assert stats["finished"] == 10

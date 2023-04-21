@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from hydra.core.config_store import ConfigStore
 
+
 @dataclass
 class SMACSweeperConfig:
     _target_: str = "hydra_plugins.hydra_smac_sweeper.smac_sweeper.SMACSweeper"
@@ -11,5 +12,6 @@ class SMACSweeperConfig:
     scenario: Dict[str, Any] = field(default_factory=dict)
     smac_class: Optional[str] = None
     smac_kwargs: Optional[Dict] = None
+
 
 ConfigStore.instance().store(group="hydra/sweeper", name="SMAC", node=SMACSweeperConfig, provider="hydra_smac_sweeper")

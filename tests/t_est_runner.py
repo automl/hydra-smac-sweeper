@@ -6,17 +6,17 @@ import unittest.mock
 from unittest.mock import patch
 
 import dask  # noqa
+import submitit
+from hydra.core.utils import JobStatus
+from hydra.test_utils.test_utils import TSweepRunner
+from hydra.types import HydraContext
 from hydra_plugins.hydra_smac_sweeper.submitit_runner import SubmititRunner
 from hydra_plugins.hydra_smac_sweeper.submitit_smac_launcher import SMACLocalLauncher
 from omegaconf import DictConfig, OmegaConf
-from smac.utils.configspace import ConfigurationSpace, UniformFloatHyperparameter
 from smac.runhistory import TrialInfo, TrialValue
 from smac.runhistory.enumerations import StatusType
 from smac.scenario import Scenario
-import submitit
-from hydra.core.utils import JobStatus
-from hydra.types import HydraContext
-from hydra.test_utils.test_utils import TSweepRunner
+from smac.utils.configspace import ConfigurationSpace, UniformFloatHyperparameter
 
 __copyright__ = "Copyright 2021, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
@@ -52,6 +52,7 @@ def mock_result(*args, **kwargs) -> int:
     class Result:
         return_value = 9
         status = JobStatus.COMPLETED
+
     return Result
 
 
@@ -93,10 +94,12 @@ class TestSubmititRunner(unittest.TestCase):
         launcher.params["progress"] = "rich"
         launcher.params["progress_slurm_refresh_interval"] = 1
         launcher.params["submitit_folder"] = "./tmp"
-        #launcher.hydra_context = HydraContext()
-        return SubmititRunner(target_function=ta, scenario=self.scenario, n_jobs=n_jobs, launcher=launcher, budget_variable="")
+        # launcher.hydra_context = HydraContext()
+        return SubmititRunner(
+            target_function=ta, scenario=self.scenario, n_jobs=n_jobs, launcher=launcher, budget_variable=""
+        )
 
-    #@patch("SMACLocalLauncher.", return_value=9)
+    # @patch("SMACLocalLauncher.", return_value=9)
     def test_run(self):
         """Makes sure that we are able to run a configuration and
         return the expected values/types"""

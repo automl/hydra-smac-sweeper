@@ -166,3 +166,7 @@ BOHB
 TODO: document `budget_variable`.
 
 
+## Notes
+python examples/mlp.py hydra.sweeper.smac_kwargs.dask_client=null -m
+
+

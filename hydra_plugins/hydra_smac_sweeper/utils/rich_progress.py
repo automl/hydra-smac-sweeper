@@ -70,9 +70,7 @@ class RichProgress:
 
             if (s == "RUNNING" or done) and not progress_task.started:
                 # start_time is not set to the exact start time because this information not included in slurm job info
-                self.progress.start_task(
-                    progress_task.id
-                )
+                self.progress.start_task(progress_task.id)
 
             if done:
 

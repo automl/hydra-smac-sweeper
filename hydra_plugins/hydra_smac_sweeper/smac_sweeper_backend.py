@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import List, cast
 
 import logging
-from rich import print as printr
 from pathlib import Path
 
 import numpy as np
+from ConfigSpace import Configuration, ConfigurationSpace
+from dask_jobqueue import SLURMCluster
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
@@ -14,21 +15,20 @@ from hydra.utils import get_class, get_method, instantiate
 from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
     search_space_to_config_space,
 )
-from omegaconf import DictConfig, OmegaConf, ListConfig
-from ConfigSpace import ConfigurationSpace, Configuration
-from smac.scenario import Scenario
+from omegaconf import DictConfig, ListConfig, OmegaConf
+from rich import print as printr
 from smac.facade.multi_fidelity_facade import MultiFidelityFacade
-from smac.runner import TargetFunctionRunner, DaskParallelRunner
-
-from dask_jobqueue import SLURMCluster
-
+from smac.runner import DaskParallelRunner, TargetFunctionRunner
+from smac.scenario import Scenario
 
 log = logging.getLogger(__name__)
+
 
 def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1):
     cluster = instantiate(cluster_cfg)
     cluster.scale(jobs=n_workers)
     return cluster
+
 
 OmegaConf.register_new_resolver("get_class", get_class, replace=True)
 OmegaConf.register_new_resolver("get_method", get_method, replace=True)
@@ -52,12 +52,12 @@ class SMACSweeperBackend(Sweeper):
             The search space, either a DictConfig from a hydra yaml config file, or a path to a json configuration space
             file in the format required of ConfigSpace, or already a ConfigurationSpace config space.
         scenario: DictConfig
-            Kwargs for scenario        
+            Kwargs for scenario
         smac_class: str | None
             Optional string defining the smac class, e.g. "smac.facade.smac_ac_facade.SMAC4AC".
         smac_kwargs: DictConfig | None
             Kwargs for the smac class from the yaml config file.
-  
+
         Returns
         -------
         None
@@ -131,7 +131,8 @@ class SMACSweeperBackend(Sweeper):
             self.configspace = search_space_to_config_space(search_space=self.search_space, seed=self.seed)
         scenario_kwargs = dict(
             configspace=self.configspace,
-            output_directory=Path(self.config.hydra.sweep.dir) / "smac3_output",  # TODO document that output directory is automatically set
+            output_directory=Path(self.config.hydra.sweep.dir)
+            / "smac3_output",  # TODO document that output directory is automatically set
         )
         # We always expect scenario kwargs from the user
         _scenario_kwargs = OmegaConf.to_container(self.scenario, resolve=True)
@@ -140,10 +141,12 @@ class SMACSweeperBackend(Sweeper):
         scenario = Scenario(**scenario_kwargs)
 
         if scenario.trial_walltime_limit is not None or scenario.trial_memory_limit is not None:
-            raise ValueError("The hydra smac sweeper currently does not support resource "
-                            "limitation (scenario.trial_walltime_limit and "
-                            "scenario.trial_memory_limit should be None) due to "
-                            "pickling issues with multiprocessing.")
+            raise ValueError(
+                "The hydra smac sweeper currently does not support resource "
+                "limitation (scenario.trial_walltime_limit and "
+                "scenario.trial_memory_limit should be None) due to "
+                "pickling issues with multiprocessing."
+            )
         smac_kwargs["scenario"] = scenario
 
         # If we have a custom intensifier we need to instantiate ourselves
@@ -162,7 +165,9 @@ class SMACSweeperBackend(Sweeper):
 
         printr(smac_class, smac_kwargs)
 
-        def target_function(config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None):
+        def target_function(
+            config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None
+        ):
             # Translate SMAC's function signature back to hydra DictConfig
             cfg = self.config  # hydra config
             for k, v in dict(config).items():
