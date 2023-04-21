@@ -162,24 +162,19 @@ class SMACSweeperBackend(Sweeper):
 
         printr(smac_class, smac_kwargs)
 
-        def target_function(config: Configuration, seed: int | None = None, budget: int | None = None):
+        def target_function(config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None):
             # Translate SMAC's function signature back to hydra DictConfig
             cfg = self.config  # hydra config
             for k, v in dict(config).items():
                 cfg[k] = v
             OmegaConf.update(cfg, "seed", seed, force_add=True)
             OmegaConf.update(cfg, "budget", budget, force_add=True)
+            OmegaConf.update(cfg, "instance", instance, force_add=True)
 
             return self.task_function(cfg=cfg)
 
-        single_worker = TargetFunctionRunner(
-            scenario=scenario,
-            target_function=target_function,
-            required_arguments=[]
-        )
-
         smac = smac_class(
-            target_function=single_worker,
+            target_function=target_function,
             **smac_kwargs,
         )
 
