@@ -25,30 +25,14 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.neural_network import MLPClassifier
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
 
 digits = load_digits()
 
-import functools
-from ConfigSpace import ConfigurationSpace, Configuration
-def my_decorator(task_function):
-    @functools.wraps(task_function)
-    def wrapper(cfg: DictConfig = None, config: Configuration = None, seed: int | None = None, budget: int | None = None):
-        # Translate SMAC's function signature back to hydra DictConfig
-        if config is not None:
-            for k, v in dict(config).items():
-                cfg[k] = v
-            OmegaConf.update(cfg, "seed", seed, force_add=True)
-            OmegaConf.update(cfg, "budget", budget, force_add=True)
-
-        return task_function(cfg=cfg)
-    return wrapper
-
 
 # Target Algorithm
 @hydra.main(config_path="configs", config_name="mlp", version_base="1.1")
-# @my_decorator
 def mlp_from_cfg(cfg: DictConfig):
     """
     Creates a MLP classifier from sklearn and fits the given data on it.

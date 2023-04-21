@@ -16,15 +16,12 @@ from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
 )
 from omegaconf import DictConfig, OmegaConf, ListConfig
 from ConfigSpace import ConfigurationSpace, Configuration
-# from smac.configspace import Configuration, ConfigurationSpace
-# from smac.facade.smac_ac_facade import SMAC4AC
 from smac.scenario import Scenario
 from smac.facade.multi_fidelity_facade import MultiFidelityFacade
 from smac.runner import TargetFunctionRunner, DaskParallelRunner
 
 from dask_jobqueue import SLURMCluster
-from dask.distributed import Client
-# from smac.stats.stats import Stats
+
 
 log = logging.getLogger(__name__)
 
@@ -36,63 +33,6 @@ def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1):
 OmegaConf.register_new_resolver("get_class", get_class, replace=True)
 OmegaConf.register_new_resolver("get_method", get_method, replace=True)
 OmegaConf.register_new_resolver("create_cluster", create_cluster, replace=True)
-
-
-# def get_target_function(task_function: callable, cfg: DictConfig) -> callable:
-#     def target_function(config: Configuration, seed: int | None = None, budget: int | None = None):
-#         # Translate SMAC's function signature back to hydra DictConfig
-#         for k, v in dict(config).items():
-#             cfg[k] = v
-#         OmegaConf.update(cfg, "seed", seed, force_add=True)
-#         OmegaConf.update(cfg, "budget", budget, force_add=True)
-
-#         return task_function(cfg=cfg)
-    
-#     return target_function
-
-
-# class TargetFunction(object):
-#     def __init__(self, task_function: callable, cfg: DictConfig) -> None:
-#         self.task_function = task_function
-#         self.cfg = cfg
-
-#     def __call__(self, config: Configuration, seed: int | None = None, budget: int | None = None):
-#         # Translate SMAC's function signature back to hydra DictConfig
-#         for k, v in dict(config).items():
-#             self.cfg[k] = v
-#         OmegaConf.update(self.cfg, "seed", seed, force_add=True)
-#         OmegaConf.update(self.cfg, "budget", budget, force_add=True)
-
-#         return self.task_function(cfg=self.cfg)
-    
-# import functools
-# class TargetFunction(object):
-#     def __init__(self, task_function: callable, cfg: DictConfig) -> None:
-#         self.task_function = task_function
-#         try:
-#             functools.update_wrapper(self, task_function)
-#         except:
-#             pass
-#         self.cfg = cfg
-
-#     def __call__(self, config: Configuration, seed: int | None = None, budget: int | None = None):
-#         # Translate SMAC's function signature back to hydra DictConfig
-#         for k, v in dict(config).items():
-#             self.cfg[k] = v
-#         OmegaConf.update(self.cfg, "seed", seed, force_add=True)
-#         OmegaConf.update(self.cfg, "budget", budget, force_add=True)
-
-#         return self.task_function(cfg=self.cfg)
-    
-
-# def target_function_prototype(task_function: callable, cfg: DictConfig, config: Configuration, seed: int | None = None, budget: int | None = None):
-#     # Translate SMAC's function signature back to hydra DictConfig
-#     for k, v in dict(config).items():
-#         cfg[k] = v
-#     OmegaConf.update(cfg, "seed", seed, force_add=True)
-#     OmegaConf.update(cfg, "budget", budget, force_add=True)
-
-#     return task_function(cfg=cfg)
 
 
 class SMACSweeperBackend(Sweeper):
@@ -228,16 +168,6 @@ class SMACSweeperBackend(Sweeper):
             OmegaConf.update(cfg, "budget", budget, force_add=True)
 
             return self.task_function(cfg=cfg)
-
-        # target_function = get_target_function(self.task_function, self.config)
-
-        # from functools import partial
-        # target_function = partial(target_function_prototype, task_function=self.task_function, cfg=self.config)
-
-        # target_function = self.task_function  # TargetFunction(task_function=self.task_function, cfg=self.config)
-        # from rich import inspect
-        # inspect(target_function)
-        # exit()
 
         single_worker = TargetFunctionRunner(
             scenario=scenario,
