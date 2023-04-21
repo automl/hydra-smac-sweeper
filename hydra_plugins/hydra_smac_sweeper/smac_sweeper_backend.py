@@ -155,7 +155,10 @@ class SMACSweeperBackend(Sweeper):
             del smac_kwargs["intensifier_kwargs"]
             intensifier_kwargs["scenario"] = scenario
             # Build intensifier
-            smac_kwargs["intensifier"] = get_class(smac_kwargs["intensifier"])(**intensifier_kwargs)
+            intensifier = smac_kwargs["intensifier"]
+            if isinstance(intensifier, str):
+                intensifier = get_class(smac_kwargs["intensifier"])
+            smac_kwargs["intensifier"] = intensifier(**intensifier_kwargs)
 
         printr(smac_class, smac_kwargs)
 
