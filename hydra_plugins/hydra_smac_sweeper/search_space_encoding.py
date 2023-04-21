@@ -16,6 +16,18 @@ class JSONCfgEncoder(json.JSONEncoder):
     """
 
     def default(self, obj: DictConfig | ListConfig | Any) -> Any:
+        """Modify default of JSON encoder
+
+        Parameters
+        ----------
+        obj : DictConfig | ListConfig | Any
+            Object to encode
+
+        Returns
+        -------
+        Any
+            Encoded object
+        """
         if isinstance(obj, DictConfig):
             return dict(obj)
         elif isinstance(obj, ListConfig):

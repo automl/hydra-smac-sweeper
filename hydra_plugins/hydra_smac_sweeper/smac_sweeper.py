@@ -20,7 +20,35 @@ class SMACSweeper(Sweeper):
         task_function: TaskFunction,
         config: DictConfig,
     ) -> None:
+        """
+        Setup launcher.
+
+        Parameters
+        ----------
+        hydra_context: HydraContext
+        task_function: TaskFunction
+        config: DictConfig
+
+        Returns
+        -------
+        None
+
+        """
         self.sweeper.setup(hydra_context=hydra_context, task_function=task_function, config=config)
 
     def sweep(self, arguments: list[str]) -> Any:
+        """
+        Run optimization with SMAC.
+
+        Parameters
+        ----------
+        arguments: list[str]
+            Hydra overrides for the sweep. Must be empty.
+
+        Returns
+        -------
+        Configuration | None
+            Incumbent (best) configuration.
+
+        """
         return self.sweeper.sweep(arguments)

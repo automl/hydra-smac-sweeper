@@ -24,6 +24,20 @@ log = logging.getLogger(__name__)
 
 
 def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1) -> JobQueueCluster:
+    """Create Dask cluster to schedule jobs on
+
+    Parameters
+    ----------
+    cluster_cfg : DictConfig
+        Configuration for the cluster
+    n_workers : int, optional
+        Number of workers, by default 1
+
+    Returns
+    -------
+    JobQueueCluster
+        Dask cluster
+    """
     cluster = instantiate(cluster_cfg)
     cluster.scale(jobs=n_workers)
     return cluster
@@ -192,12 +206,17 @@ class SMACSweeperBackend(Sweeper):
         Parameters
         ----------
         arguments: list[str]
-            Hydra overrides for the sweep.
+            Hydra overrides for the sweep. Must be empty.
 
         Returns
         -------
         Configuration | None
             Incumbent (best) configuration.
+
+        Raises
+        ------
+        ValueError
+            When providing overriding arguments, override arguments do not have any effect.
 
         """
         assert self.config is not None
