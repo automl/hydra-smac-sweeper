@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-import logging
-from pathlib import Path
 from typing import Any
 
+import logging
+from pathlib import Path
+
 from ConfigSpace import Configuration, ConfigurationSpace  # type: ignore[import]
+from dask_jobqueue import JobQueueCluster
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
@@ -14,10 +16,9 @@ from hydra_plugins.hydra_smac_sweeper.search_space_encoding import (
 )
 from omegaconf import DictConfig, OmegaConf
 from rich import print as printr
+from smac.facade.abstract_facade import AbstractFacade
 from smac.runner import DaskParallelRunner
 from smac.scenario import Scenario
-from dask_jobqueue import JobQueueCluster
-from smac.facade.abstract_facade import AbstractFacade
 
 log = logging.getLogger(__name__)
 

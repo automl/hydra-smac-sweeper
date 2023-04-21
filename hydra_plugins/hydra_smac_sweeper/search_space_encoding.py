@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-import json
 from typing import Any
+
+import json
+
 from ConfigSpace import ConfigurationSpace  # type: ignore[import]
 from ConfigSpace.read_and_write import json as csjson  # type: ignore[import]
 from omegaconf import DictConfig, ListConfig
