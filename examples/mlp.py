@@ -62,7 +62,7 @@ def mlp_from_cfg(cfg: DictConfig):
             activation=cfg.activation,
             learning_rate=lr,
             learning_rate_init=lr_init,
-            max_iter=int(np.ceil(cfg.epochs)),
+            max_iter=int(np.ceil(cfg.budget)),
             random_state=cfg.seed,
         )
 
