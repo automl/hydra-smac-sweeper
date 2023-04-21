@@ -190,6 +190,32 @@ def test_smac_sweeper_sweep_arguments_error(kwargs: DictConfig):
         sweeper.sweep(arguments=["nothing", "should", "go", "in", "here"])
 
 
+@mark.parametrize(
+    "kwargs",
+    [
+        DictConfig(
+            content={
+                "smac_class": None,
+                "smac_kwargs": None,
+                "search_space": "tests/configspace_a.json",
+                "scenario": {
+                    "trial_walltime_limit": 10,
+                },
+            }
+        ),
+    ],
+)
+def test_smac_sweeper_sweep_resourcelimitation_error(kwargs: DictConfig):
+    sweeper = SMACSweeperBackend(**kwargs)
+    config = OmegaConf.create({"hydra": {"sweep": {"dir": "./tmp"}}})
+    sweeper.config = config
+    sweeper.task_function = branin
+    sweeper.launcher = "dummy"
+    sweeper.hydra_context = "dummy"
+    with pytest.raises(ValueError):
+        sweeper.setup_smac()
+
+
 
 @mark.parametrize("n_workers", [1, 2])
 def test_smac_example(tmpdir: Path, n_workers: int) -> None:
