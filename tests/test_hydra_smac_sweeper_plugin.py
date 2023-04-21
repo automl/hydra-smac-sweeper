@@ -150,6 +150,17 @@ def test_search_space_parsing_value_error() -> None:
                 "scenario": {},
             }
         ),
+        DictConfig(
+            content={
+                "smac_class": None,
+                "smac_kwargs": {
+                    "intensifier": "${get_method:smac.facade.hyperparameter_optimization_facade.HyperparameterOptimizationFacade.get_intensifier}",
+                    "intensifier_kwargs": {},
+                },
+                "search_space": "tests/configspace_a.json",
+                "scenario": {},
+            }
+        ),
     ],
 )
 def test_smac_sweeper_args(kwargs: DictConfig):
