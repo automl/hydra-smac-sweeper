@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 
 from ConfigSpace import Configuration, ConfigurationSpace  # type: ignore[import]
-from dask_jobqueue import JobQueueCluster
+from dask_jobqueue import JobQueueCluster  # type: ignore[import]
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
