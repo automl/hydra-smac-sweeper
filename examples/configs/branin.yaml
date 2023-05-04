@@ -5,6 +5,7 @@ defaults:
 
 hydra:
   sweeper:
+    smac_class: smac.facade.blackbox_facade.BlackBoxFacade
     scenario:
       seed: 42
       n_trials: 100
