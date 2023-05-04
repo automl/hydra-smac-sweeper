@@ -4,13 +4,13 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]             # path to the test directory
 minversion = "3.8"
-addopts = "--cov=hydra_smac_sweeper" # Should be package name
+addopts = "--cov=hydra_plugins.hydra_smac_sweeper" # Should be package name
 
 [tool.coverage.run]
 branch = true
-context = "hydra_smac_sweeper" # Should be package name
+context = "hydra_plugins.hydra_smac_sweeper" # Should be package name
 omit = [
-    "hydra_smac_sweeper/__init__.py", # Has variables only needed for setup.py
+    "hydra_plugins/hydra_smac_sweeper/__init__.py", # Has variables only needed for setup.py
 ]
 
 [tool.coverage.report]
@@ -30,7 +30,7 @@ line-length = 120
 [tool.isort]
 py_version = "38"
 profile = "black" # Play nicely with black
-src_paths = ["hydra_smac_sweeper", "tests"]
+src_paths = ["hydra_plugins/hydra_smac_sweeper", "tests"]
 known_types = ["typing", "abc"] # We put these in their own section "types"
 known_test = ["tests"]
 known_first_party = ["hydra_smac_sweeper"]
