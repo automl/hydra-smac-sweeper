@@ -135,3 +135,8 @@ dmypy.json
 .idea/
 
 outputs
+
+# Sphinx documentation
+docs/build
+docs/api
+docs/examples
