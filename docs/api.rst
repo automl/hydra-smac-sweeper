@@ -6,4 +6,4 @@ API References
    :toctree: api
    :recursive:
 
-   hydra_smac_sweeper
+   hydra_plugins.hydra_smac_sweeper
