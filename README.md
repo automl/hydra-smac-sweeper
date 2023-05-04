@@ -76,7 +76,7 @@ You can specify any kwargs available in `dask_jobqueue.SLURMCluster`.
 ### Run Local
 You can also run it locally by specifying the dask client to be `null`, e.g.
 ```bash
-python examples/mlp.py hydra.sweeper.smac_kwargs.dask_client=null -m
+python examples/multifidelity_mlp.py hydra.sweeper.smac_kwargs.dask_client=null -m
 ```
 
 Or in the config file:
@@ -154,8 +154,8 @@ See below for two exemplary search spaces.
 You can find examples in this [directory](https://github.com/automl/hydra-smac-sweeper/tree/main/examples).
 
 ### Branin (Synthetic Function)
-The first example is optimizing (minimizing) a synthetic function (`branin.py` with
-the yaml-config `configs/branin.yaml`).
+The first example is optimizing (minimizing) a synthetic function (`examples/blackbox_branin.py` with
+the yaml-config `examples/configs/branin.yaml`).
 Branin has two (hyper-)parameters, `x0` and `x1` which we pass via the hydra config.
 For the hyperparameter optimization (or sweep) we can easily define the search
 space for the uniform hyperparameters in the config file:
@@ -180,12 +180,12 @@ hydra:
 
 To optimize Branin's hyperparameters, call
 ```bash
-python examples/branin.py --multirun
+python examples/blackbox_branin.py --multirun
 ```
 
 ### Optimizing an MLP
 Example for optimizing a Multi-Layer Perceptron (MLP) using multiple budgets
-(`mlp.py` with the yaml-config `configs/mlp.yaml`).
+(`examples/multifidelity_mlp.py` with the yaml-config `examples/configs/mlp.yaml`).
 The search space is hierarchical: Some options are only available if other categorical
 choices are selected.
 The budget variable is set by the intensifier for each run and can be specified in the sweeper config.
@@ -222,14 +222,10 @@ In order to let SMAC successfully interact with your hydra main function, you ne
 
 ## Multi-Fidelity Optimization
 In order to use multi-fidelity, you need to use `cfg.budget` to set your budget at the DictConfig's root level.
-You can find an example in `examples/mlp.py` and `examples/configs/mlp.yaml` to see how we set the budget variable.
+You can find an example in `examples/multifidelity_mlp.py` and `examples/configs/mlp.yaml` to see how we set the budget variable.
 
 ## Using Instances
 In order to use instances, you need to use `cfg.instance` to set your instance in your main function.
 
-
-
-## Notes
-python examples/mlp.py hydra.sweeper.smac_kwargs.dask_client=null -m
 
 
