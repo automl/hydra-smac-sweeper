@@ -18,7 +18,7 @@ Helpful Commands
 
 
 Reference to a link:
-    `Your link <https://automl.org>`_ or `<https://automl.org>`_.
+    `Your link <https://www.automl.org>`_ or `<https://www.automl.org>`_.
 
 
 Reference to the glossary:

@@ -10,7 +10,7 @@ aggressive racing mechanism and successive halving.
 MLP is a deep neural network, and therefore, we choose epochs as fidelity type. The digits dataset
 is chosen to optimize the average accuracy on 5-fold cross validation.
 
-This example is adapted from https://github.com/automl/SMAC3/blob/master/examples/python/mlp_mf.py.
+This example is adapted from `<https://github.com/automl/SMAC3/blob/main/examples/2_multi_fidelity/1_mlp_epochs.py>`_.
 """
 __copyright__ = "Copyright 2022, AutoML.org Freiburg-Hannover"
 __license__ = "3-clause BSD"
