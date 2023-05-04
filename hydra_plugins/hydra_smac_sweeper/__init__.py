@@ -11,4 +11,4 @@ project_urls = {
     "Source Code": "https://github.com/AutoML/hydra_smac_sweeper",
 }
 copyright = f"Copyright {datetime.date.today().strftime('%Y')}, benjamc"
-version = "0.0.1"
+version = "0.0.1.alpha"
