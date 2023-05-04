@@ -3,7 +3,7 @@ import datetime
 name = "Hydra-SMAC-Sweeper"
 package_name = "hydra_smac_sweeper"
 author = "benjamc"
-author_email = "benjamin@tnt.uni-hannover.de"
+author_email = "c.benjamins@ai.uni-hannover.de"
 description = "SMAC's integration as a hydra sweeper"
 url = "https://www.automl.org"
 project_urls = {
