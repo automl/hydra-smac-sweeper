@@ -212,9 +212,6 @@ hydra:
           values: [sgd, adam]
 ```
 
-TODO: slurm config
-
-
 ## Necessary Configuration Keys
 In order to let SMAC successfully interact with your hydra main function, you need to use following configuration keys in your main DictConfig:
 
