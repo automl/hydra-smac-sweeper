@@ -13,7 +13,8 @@ solver: adam
 activation: tanh
 
 seed: 42
-budget: 10 # Default number of epochs
+epochs: 10  # Default number of epochs
+budget_variable: epochs  # Tells SMAC what variable to adjust for multi-fidelity
 
 hydra:
   sweeper:

@@ -218,8 +218,9 @@ In order to let SMAC successfully interact with your hydra main function, you ne
 - seed: SMAC will set DictConfig.seed and pass it to your main function.
 
 ## Multi-Fidelity Optimization
-In order to use multi-fidelity, you need to use `cfg.budget` to set your budget at the DictConfig's root level.
+In order to use multi-fidelity, you need to set `cfg.budget_variable` with the name of your config variable controlling the budget.
 You can find an example in `examples/multifidelity_mlp.py` and `examples/configs/mlp.yaml` to see how we set the budget variable.
+Here we have `budget_variable=epochs` indicating that `epochs` is the fidelity.
 
 ## Using Instances
 In order to use instances, you need to use `cfg.instance` to set your instance in your main function.

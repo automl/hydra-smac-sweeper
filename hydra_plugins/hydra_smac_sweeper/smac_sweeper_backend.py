@@ -187,7 +187,7 @@ class SMACSweeperBackend(Sweeper):
             for k, v in dict(config).items():
                 cfg[k] = v
             OmegaConf.update(cfg, "seed", seed, force_add=True)
-            OmegaConf.update(cfg, "budget", budget, force_add=True)
+            OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
             OmegaConf.update(cfg, "instance", instance, force_add=True)
 
             return self.task_function(cfg=cfg)  # type: ignore[misc]
