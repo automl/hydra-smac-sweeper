@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 from ConfigSpace import ConfigurationSpace, UniformFloatHyperparameter
-from examples.branin import branin
+from examples.blackbox_branin import branin
 from hydra.core.plugins import Plugins
 from hydra.plugins.sweeper import Sweeper
 from hydra.test_utils.test_utils import chdir_plugin_root, run_python_script
@@ -228,7 +228,7 @@ def test_smac_example(tmpdir: Path, n_workers: int) -> None:
     print(tmpdir)
     seed = 123
     cmd = [
-        "examples/branin.py",
+        "examples/blackbox_branin.py",
         "hydra.run.dir=" + str(tmpdir),
         "hydra.sweep.dir=" + str(tmpdir),
         "hydra.sweeper.scenario.n_trials=10",

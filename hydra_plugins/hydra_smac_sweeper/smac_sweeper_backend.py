@@ -135,6 +135,11 @@ class SMACSweeperBackend(Sweeper):
             smac_class = "smac.facade.hyperparameter_optimization_facade.HyperparameterOptimizationFacade"
             smac_class = get_class(smac_class)
 
+        if smac_class == get_class("smac.facade.multi_fidelity_facade.MultiFidelityFacade") and "budget_variable" not in self.config:
+            raise ValueError("In order to use the MultiFidelityFacade you need to provide `budget_variable` at "
+                             "your configs root level indicating which variable of your config is the fidelity "
+                             "and controls the budget.")
+
         # Setup other SMAC kwargs
         smac_kwargs = {}
         if self.smac_kwargs is not None:
@@ -187,7 +192,8 @@ class SMACSweeperBackend(Sweeper):
             for k, v in dict(config).items():
                 cfg[k] = v
             OmegaConf.update(cfg, "seed", seed, force_add=True)
-            OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
+            if "budget_variable" in cfg:
+                OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
             OmegaConf.update(cfg, "instance", instance, force_add=True)
 
             return self.task_function(cfg=cfg)  # type: ignore[misc]
