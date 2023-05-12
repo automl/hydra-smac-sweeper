@@ -177,6 +177,15 @@ class SMACSweeperBackend(Sweeper):
                 intensifier = get_class(smac_kwargs["intensifier"])
             smac_kwargs["intensifier"] = intensifier(**intensifier_kwargs)
 
+        if "initial_design" in smac_kwargs:
+            initial_design = smac_kwargs["initial_design"]
+            if isinstance(initial_design, str):
+                initial_design = get_class(smac_kwargs["initial_design"])
+            initial_design_kwargs = smac_kwargs.get("initial_design_kwargs", {})
+            del smac_kwargs["initial_design_kwargs"]
+            smac_kwargs["initial_design"] = initial_design(scenario=scenario, **initial_design_kwargs)
+
+
         printr(smac_class, smac_kwargs)
 
         def target_function(
