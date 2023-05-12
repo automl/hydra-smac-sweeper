@@ -58,6 +58,7 @@ setuptools.setup(
         "hydra_colorlog",
         "hydra-submitit-launcher",
         "pandas",
+        "dask_jobqueue"
     ],
     extras_require=extras_require,
     test_suite="pytest",
