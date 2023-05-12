@@ -185,7 +185,6 @@ class SMACSweeperBackend(Sweeper):
             del smac_kwargs["initial_design_kwargs"]
             smac_kwargs["initial_design"] = initial_design(scenario=scenario, **initial_design_kwargs)
 
-
         printr(smac_class, smac_kwargs)
 
         def target_function(
