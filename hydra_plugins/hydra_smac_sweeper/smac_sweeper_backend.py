@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import logging
+import warnings
 from pathlib import Path
 
 from ConfigSpace import Configuration, ConfigurationSpace  # type: ignore[import]
@@ -135,10 +136,15 @@ class SMACSweeperBackend(Sweeper):
             smac_class = "smac.facade.hyperparameter_optimization_facade.HyperparameterOptimizationFacade"
             smac_class = get_class(smac_class)
 
-        if smac_class == get_class("smac.facade.multi_fidelity_facade.MultiFidelityFacade") and "budget_variable" not in self.config:
-            raise ValueError("In order to use the MultiFidelityFacade you need to provide `budget_variable` at "
-                             "your configs root level indicating which variable of your config is the fidelity "
-                             "and controls the budget.")
+        if (
+            smac_class == get_class("smac.facade.multi_fidelity_facade.MultiFidelityFacade")
+            and "budget_variable" not in self.config
+        ):
+            raise ValueError(
+                "In order to use the MultiFidelityFacade you need to provide `budget_variable` at "
+                "your configs root level indicating which variable of your config is the fidelity "
+                "and controls the budget."
+            )
 
         # Setup other SMAC kwargs
         smac_kwargs = {}
@@ -229,7 +235,7 @@ class SMACSweeperBackend(Sweeper):
 
         Raises
         ------
-        ValueError
+        Warning
             When providing overriding arguments, override arguments do not have any effect.
 
         """
@@ -241,7 +247,7 @@ class SMACSweeperBackend(Sweeper):
         printr("Hydra context", self.hydra_context)
 
         if len(arguments) > 0:
-            raise ValueError("Override arguments do not have any effect.", arguments)
+            warnings.warn(f"Override arguments might not have an effect if they are a sweep. {arguments}")
 
         smac = self.setup_smac()
 
