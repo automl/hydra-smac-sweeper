@@ -28,8 +28,9 @@ cd hydra-smac-sweeper
 ```
 In your virtual environment, install via pip:
 ```bash
-pip install -e .
+pip install -e . --config-settings editable_mode=compat
 ```
+The compat mode can be necessary such that the package is correctly discovered.
 
 Please find standard approaches for configuring hydra plugins
 [here](https://hydra.cc/docs/patterns/configuring_plugins/).
