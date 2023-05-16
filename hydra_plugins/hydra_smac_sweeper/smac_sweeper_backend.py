@@ -49,6 +49,26 @@ OmegaConf.register_new_resolver("get_method", get_method, replace=True)
 OmegaConf.register_new_resolver("create_cluster", create_cluster, replace=True)
 
 
+class TargetFunction(object):
+    def __init__(self, task_function: callable, config: DictConfig) -> None:
+        self.task_function = task_function
+        self.config = config
+    
+    def __call__(
+            self, config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None
+        ) -> Any:
+        # Translate SMAC's function signature back to hydra DictConfig
+        cfg = self.config  # hydra config
+        for k, v in dict(config).items():
+            cfg[k] = v
+        OmegaConf.update(cfg, "seed", seed, force_add=True)
+        if "budget_variable" in cfg:
+            OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
+        OmegaConf.update(cfg, "instance", instance, force_add=True)
+
+        return self.task_function(cfg=cfg)  # type: ignore[misc]
+
+
 class SMACSweeperBackend(Sweeper):
     def __init__(
         self,
@@ -198,19 +218,7 @@ class SMACSweeperBackend(Sweeper):
 
         printr(smac_class, smac_kwargs)
 
-        def target_function(
-            config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None
-        ) -> Any:
-            # Translate SMAC's function signature back to hydra DictConfig
-            cfg = self.config  # hydra config
-            for k, v in dict(config).items():
-                cfg[k] = v
-            OmegaConf.update(cfg, "seed", seed, force_add=True)
-            if "budget_variable" in cfg:
-                OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
-            OmegaConf.update(cfg, "instance", instance, force_add=True)
-
-            return self.task_function(cfg=cfg)  # type: ignore[misc]
+        target_function = TargetFunction(task_function=self.task_function, config=self.config)
 
         smac = smac_class(
             target_function=target_function,
