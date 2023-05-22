@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 import logging
 import warnings
@@ -51,7 +51,7 @@ OmegaConf.register_new_resolver("create_cluster", create_cluster, replace=True)
 
 
 class TargetFunction(object):
-    def __init__(self, task_function: callable, config: DictConfig) -> None:
+    def __init__(self, task_function: Callable, config: DictConfig) -> None:
         self.task_function = task_function
         self.config = config
         self.job_num: int = 0
