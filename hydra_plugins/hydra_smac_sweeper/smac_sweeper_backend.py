@@ -9,6 +9,7 @@ from pathlib import Path
 from ConfigSpace import Configuration, ConfigurationSpace  # type: ignore[import]
 from dask_jobqueue import JobQueueCluster  # type: ignore[import]
 from hydra.core.plugins import Plugins
+from hydra.core.utils import setup_globals
 from hydra.plugins.sweeper import Sweeper
 from hydra.types import HydraContext, TaskFunction
 from hydra.utils import get_class, get_method, instantiate
@@ -53,10 +54,35 @@ class TargetFunction(object):
     def __init__(self, task_function: callable, config: DictConfig) -> None:
         self.task_function = task_function
         self.config = config
-    
+        self.job_num: int = 0
+
     def __call__(
-            self, config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None
-        ) -> Any:
+        self, config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None
+    ) -> Any:
+        """Call target function
+
+        Translate SMAC's args into hydra cfg.
+
+        Parameters
+        ----------
+        config : Configuration
+            Hyperparameter configuration
+        seed : int | None, optional
+            Seed, by default None
+        budget : int | None, optional
+            Budget for multi-fidelity, by default None
+        instance : str | None, optional
+            Instance for algorithm configuration, by default None
+
+        Returns
+        -------
+        Any
+            Output of the target function
+        """
+        # If we have hydra resolvers in our target function
+        # we need to reregister them
+        setup_globals()
+
         # Translate SMAC's function signature back to hydra DictConfig
         cfg = self.config  # hydra config
         for k, v in dict(config).items():
@@ -65,6 +91,12 @@ class TargetFunction(object):
         if "budget_variable" in cfg:
             OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
         OmegaConf.update(cfg, "instance", instance, force_add=True)
+
+        # We do not have a job number as in classic hydra multirun
+        # Simulate this based on a simple counter
+        if cfg.get("hydra.job.num") is None:
+            OmegaConf.update(cfg, "hydra.job.num", self.job_num, force_add=True)
+            self.job_num += 1
 
         return self.task_function(cfg=cfg)  # type: ignore[misc]
 
@@ -253,6 +285,7 @@ class SMACSweeperBackend(Sweeper):
 
         printr("Config", self.config)
         printr("Hydra context", self.hydra_context)
+        printr("Launcher", self.launcher)
 
         if len(arguments) > 0:
             warnings.warn(f"Override arguments might not have an effect if they are a sweep. {arguments}")
