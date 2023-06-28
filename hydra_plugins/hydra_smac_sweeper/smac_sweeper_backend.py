@@ -253,7 +253,7 @@ class SMACSweeperBackend(Sweeper):
         target_function = TargetFunction(task_function=self.task_function, config=self.config)
 
         smac = smac_class(
-            target_function=target_function,
+            target_function=target_function.__call__,
             **smac_kwargs,
         )
 
