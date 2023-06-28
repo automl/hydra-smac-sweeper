@@ -119,6 +119,9 @@ def search_space_to_config_space(
                 cfg["default"] = None
             if "log" not in cfg:
                 cfg["log"] = False
+            # Quantization factor
+            if "q" not in cfg:
+                cfg["q"] = None
             hyperparameters.append(cfg)
         search_space.hyperparameters = hyperparameters
 
