@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import partial
 from typing import Any, Callable
 
 import logging
@@ -56,8 +57,26 @@ class TargetFunction(object):
         self.config = config
         self.job_num: int = 0
 
+    def _translate_config(self, cfg, config: Configuration) -> None:
+        """
+        Translate SMAC's hyperparameter keys into hydra's keys and
+        overwrite them inplace in the config.
+
+        Parameters:
+        -----------
+        cfg : DictConfig, the hydra config to be updated
+        config : Configuration, the SMAC config to be translated and basis for the update
+
+        Returns:
+        --------
+        None (inplace update of cfg)
+        """
+        for k, v in dict(config).items():
+            cfg[k] = v
+
     def __call__(
-        self, config: Configuration, seed: int | None = None, budget: int | None = None, instance: str | None = None
+            self, config: Configuration, seed: int | None = None, budget: int | None = None,
+            instance: str | None = None
     ) -> Any:
         """Call target function
 
@@ -85,8 +104,10 @@ class TargetFunction(object):
 
         # Translate SMAC's function signature back to hydra DictConfig
         cfg = self.config  # hydra config
-        for k, v in dict(config).items():
-            cfg[k] = v
+        self._translate_config(cfg, config)
+
+        # SMAC's tae requires special arguments seed, budget_variable and instance depending on
+        # the used facade and need to be added to the config
         OmegaConf.update(cfg, "seed", seed, force_add=True)
         if "budget_variable" in cfg:
             OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
@@ -103,11 +124,13 @@ class TargetFunction(object):
 
 class SMACSweeperBackend(Sweeper):
     def __init__(
-        self,
-        search_space: DictConfig | str | ConfigurationSpace,
-        scenario: DictConfig,
-        smac_class: str | None = None,
-        smac_kwargs: DictConfig | None = None,
+            self,
+            search_space: DictConfig | str | ConfigurationSpace,
+            scenario: DictConfig,
+            smac_class: str | None = None,
+            smac_kwargs: DictConfig | None = None,
+            target_function: TargetFunction = TargetFunction,
+
     ) -> None:
         """
         Backend for the SMAC sweeper. Instantiate and launch SMAC's optimization.
@@ -115,14 +138,19 @@ class SMACSweeperBackend(Sweeper):
         Parameters
         ----------
         search_space: DictConfig | str | ConfigurationSpace
-            The search space, either a DictConfig from a hydra yaml config file, or a path to a json configuration space
-            file in the format required of ConfigSpace, or already a ConfigurationSpace config space.
+            The search space, either a DictConfig from a hydra yaml config file, or a path to a json
+            configuration space file in the format required of ConfigSpace, or already a
+            ConfigurationSpace config space.
         scenario: DictConfig
             Kwargs for scenario
         smac_class: str | None
             Optional string defining the smac class, e.g. "smac.facade.smac_ac_facade.SMAC4AC".
         smac_kwargs: DictConfig | None
             Kwargs for the smac class from the yaml config file.
+        target_function: TargetFunction, a callable that takes a Configuration from SMAC,
+            parses it into hydra configs, and calls the task function with it.
+            Can be customized to allow e.g. constraints in the search space, that require special
+            parsing.
 
         Returns
         -------
@@ -139,12 +167,14 @@ class SMACSweeperBackend(Sweeper):
         self.task_function: TaskFunction | None = None
         self.sweep_dir: str | None = None
 
+        self.target_function = target_function
+
     def setup(
-        self,
-        *,
-        hydra_context: HydraContext,
-        task_function: TaskFunction,
-        config: DictConfig,
+            self,
+            *,
+            hydra_context: HydraContext,
+            task_function: TaskFunction,
+            config: DictConfig,
     ) -> None:
         """
         Setup launcher.
@@ -189,8 +219,8 @@ class SMACSweeperBackend(Sweeper):
             smac_class = get_class(smac_class)
 
         if (
-            smac_class == get_class("smac.facade.multi_fidelity_facade.MultiFidelityFacade")
-            and "budget_variable" not in self.config
+                smac_class == get_class("smac.facade.multi_fidelity_facade.MultiFidelityFacade")
+                and "budget_variable" not in self.config
         ):
             raise ValueError(
                 "In order to use the MultiFidelityFacade you need to provide `budget_variable` at "
@@ -205,11 +235,13 @@ class SMACSweeperBackend(Sweeper):
 
         # Instantiate Scenario
         if self.configspace is None:
-            self.configspace = search_space_to_config_space(search_space=self.search_space, seed=self.seed)
+            self.configspace = search_space_to_config_space(search_space=self.search_space,
+                                                            seed=self.seed)
         scenario_kwargs = dict(
             configspace=self.configspace,
             output_directory=Path(self.config.hydra.sweep.dir)
-            / "smac3_output",  # TODO document that output directory is automatically set
+                             / "smac3_output",
+            # TODO document that output directory is automatically set
         )
         # We always expect scenario kwargs from the user
         _scenario_kwargs = OmegaConf.to_container(self.scenario, resolve=True)
@@ -246,11 +278,12 @@ class SMACSweeperBackend(Sweeper):
                 initial_design = get_class(smac_kwargs["initial_design"])
             initial_design_kwargs = smac_kwargs.get("initial_design_kwargs", {})
             del smac_kwargs["initial_design_kwargs"]
-            smac_kwargs["initial_design"] = initial_design(scenario=scenario, **initial_design_kwargs)
+            smac_kwargs["initial_design"] = initial_design(scenario=scenario,
+                                                           **initial_design_kwargs)
 
         printr(smac_class, smac_kwargs)
 
-        target_function = TargetFunction(task_function=self.task_function, config=self.config)
+        target_function = self.target_function(task_function=self.task_function, config=self.config)
 
         smac = smac_class(
             target_function=target_function,
@@ -288,7 +321,8 @@ class SMACSweeperBackend(Sweeper):
         printr("Launcher", self.launcher)
 
         if len(arguments) > 0:
-            warnings.warn(f"Override arguments might not have an effect if they are a sweep. {arguments}")
+            warnings.warn(
+                f"Override arguments might not have an effect if they are a sweep. {arguments}")
 
         smac = self.setup_smac()
 
