@@ -6,7 +6,8 @@
       "log": false,
       "lower": -512.0,
       "upper": 512.0,
-      "default": -3.0
+      "default": -3.0,
+      "q": null
     },
     {
       "name": "x1",
@@ -14,7 +15,8 @@
       "log": true,
       "lower": 335,
       "upper": 512.0,
-      "default": 400
+      "default": 400,
+      "q": null
     }
   ],
   "conditions": [],

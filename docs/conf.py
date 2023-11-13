@@ -9,7 +9,7 @@ options = {
     "name": name,
     "html_theme_options": {
         "github_url": "https://github.com/AutoML/Hydra-SMAC-Sweeper",
-        "twitter_url": "https://twitter.com/automl_org?lang=de",
+        "twitter_url": "https://twitter.com/automl_org",
     },
 }
 

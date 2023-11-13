@@ -86,7 +86,7 @@ class TargetFunction(object):
         # Translate SMAC's function signature back to hydra DictConfig
         cfg = self.config  # hydra config
         for k, v in dict(config).items():
-            cfg[k] = v
+            OmegaConf.update(cfg, k, v)
         OmegaConf.update(cfg, "seed", seed, force_add=True)
         if "budget_variable" in cfg:
             OmegaConf.update(cfg, cfg.budget_variable, budget, force_add=True)
@@ -253,7 +253,7 @@ class SMACSweeperBackend(Sweeper):
         target_function = TargetFunction(task_function=self.task_function, config=self.config)
 
         smac = smac_class(
-            target_function=target_function,
+            target_function=target_function.__call__,
             **smac_kwargs,
         )
 

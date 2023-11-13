@@ -53,7 +53,7 @@ setuptools.setup(
     python_requires=">=3.8",
     install_requires=[
         "hydra-core",
-        "smac>=2.0.0",
+        "smac>=2.0.2",
         "rich",
         "hydra_colorlog",
         "hydra-submitit-launcher",

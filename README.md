@@ -13,14 +13,6 @@ local machine or on a slurm cluster.
 The sweeper supports every SMAC facade.
 
 ## Installation
-First, make sure to install the newest SMAC and checkout branch `development`:
-```bash
-git clone git@github.com:automl/SMAC3.git
-cd SMAC3
-git checkout development
-pip install .
-```
-
 For the Hydra-SMAC-Sweeper please clone the repository first:
 ```bash
 git clone git@github.com:automl/hydra-smac-sweeper.git
@@ -30,7 +22,7 @@ In your virtual environment, install via pip:
 ```bash
 pip install -e . --config-settings editable_mode=compat
 ```
-The compat mode can be necessary such that the package is correctly discovered.
+⚠ The compat mode can be necessary such that the package is correctly discovered.
 
 Please find standard approaches for configuring hydra plugins
 [here](https://hydra.cc/docs/patterns/configuring_plugins/).
