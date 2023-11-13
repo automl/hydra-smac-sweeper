@@ -22,7 +22,7 @@ env:
 
   package-name: hydra_smac_sweeper
   test-dir: tests
-  extra-requires: "[dev]"  # "" for no extra_requires
+  extra-requires: "[dev] --config-settings editable_mode=compat"  # "" for no extra_requires
 
   # Arguments used for pytest
   pytest-args: >-
