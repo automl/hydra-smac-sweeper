@@ -193,7 +193,7 @@ def test_smac_sweeper_sweep_arguments_error(kwargs: DictConfig):
     sweeper.task_function = branin
     sweeper.launcher = "dummy"
     sweeper.hydra_context = "dummy"
-    with pytest.raises(ValueError):
+    with pytest.warns():
         sweeper.sweep(arguments=["nothing", "should", "go", "in", "here"])
 
 
