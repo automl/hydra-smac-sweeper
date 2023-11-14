@@ -1,0 +1,36 @@
+hydra\_plugins.hydra\_smac\_sweeper.smac\_sweeper\_backend
+==========================================================
+
+.. automodule:: hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      create_cluster
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SMACSweeperBackend
+      TargetFunction
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend &#8212; Hydra-SMAC-Sweeper Documentation 0.0.1.alpha documentation</title>
+    
+  <link href="../_static/css/theme.css" rel="stylesheet">
+  <link href="../_static/css/index.ac9c05f7c49ca1e1f876c6e36360ea26.css" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=2eb4fb78" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.9ea38e314b9e6d9dab77.js">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=4f4f1fde"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Glossary" href="../glossary.html" />
+    <link rel="prev" title="hydra_plugins.hydra_smac_sweeper.smac_sweeper" href="hydra_plugins.hydra_smac_sweeper.smac_sweeper.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+  <a class="navbar-brand" href="../index.html">
+  <!-- <p class="title">Hydra-SMAC-Sweeper Documentation</p> -->
+  </a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/AutoML/Hydra-SMAC-Sweeper" rel="noopener" target="_blank" title="GitHub">
+            <span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://twitter.com/automl_org" rel="noopener" target="_blank" title="Twitter">
+            <span><i class="fab fa-twitter-square"></i></span>
+            <label class="sr-only">Twitter</label>
+          </a>
+        </li>
+      </ul>
+      </div>
+      
+      <div class="navbar-end-item">
+        <div class="dropdown mt-1">
+    <button type="button" class="btn btn-secondary btn-md navbar-btn dropdown-toggle" id="dLabelMore"
+        data-toggle="dropdown">
+        v0.0.1.alpha
+        <span class="caret"></span>
+    </button>
+    <div class="dropdown-menu list-group-flush py-0" aria-labelledby="dLabelMore">
+        <a class="list-group-item list-group-item-action" href="#">v0.0.1.alpha</a>
+    </div>
+</div>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search align-items-center" action="../search.html" method="get" style="width: 100%;">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control btn btn-md" name="q" id="search-input"
+    placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off">
+</form>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><h4 class="mt-0 mb-0"><a href="../index.html">Hydra-SMAC-Sweeper Documentation</a></h4>
+<div class="mb-3">v0.0.1.alpha</div><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../installation.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../examples/index.html">
+   Examples
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../examples/blackbox_branin.html">
+     Branin
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../examples/multifidelity_mlp.html">
+     MLP with Multi-Fidelity
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../basic_usage/index.html">
+   Basic Usage
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="simple">
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../advanced_usage/index.html">
+   Advanced Usage
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="simple">
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../commands.html">
+   Helpful Commands
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../api.html">
+   API References
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+  <label for="toctree-checkbox-4">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="hydra_plugins.hydra_smac_sweeper.html">
+     hydra_plugins.hydra_smac_sweeper
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+    <label for="toctree-checkbox-5">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3">
+      <a class="reference internal" href="hydra_plugins.hydra_smac_sweeper.config.html">
+       hydra_plugins.hydra_smac_sweeper.config
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="hydra_plugins.hydra_smac_sweeper.search_space_encoding.html">
+       hydra_plugins.hydra_smac_sweeper.search_space_encoding
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="hydra_plugins.hydra_smac_sweeper.smac_sweeper.html">
+       hydra_plugins.hydra_smac_sweeper.smac_sweeper
+      </a>
+     </li>
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../glossary.html">
+   Glossary
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../faq.html">
+   Frequently Asked Questions
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     SMACSweeperBackend
+    </span>
+   </code>
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.setup">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       SMACSweeperBackend.setup()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.setup_smac">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       SMACSweeperBackend.setup_smac()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.sweep">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       SMACSweeperBackend.sweep()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.create_cluster">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     create_cluster()
+    </span>
+   </code>
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="module-hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend">
+<span id="hydra-plugins-hydra-smac-sweeper-smac-sweeper-backend"></span><h1>hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend<a class="headerlink" href="#module-hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend" title="Permalink to this heading">¶</a></h1>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.create_cluster" title="hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.create_cluster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_cluster</span></code></a>(cluster_cfg[, n_workers])</p></td>
+<td><p>Create Dask cluster to schedule jobs on</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend" title="hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMACSweeperBackend</span></code></a>(search_space, scenario[, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TargetFunction</span></code>(task_function, config)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.</span></span><span class="sig-name descname"><span class="pre">SMACSweeperBackend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenario</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smac_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smac_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hydra_plugins/hydra_smac_sweeper/smac_sweeper_backend.html#SMACSweeperBackend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Sweeper</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydra_context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hydra_plugins/hydra_smac_sweeper/smac_sweeper_backend.html#SMACSweeperBackend.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup launcher.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hydra_context</strong> (<em>HydraContext</em>) – </p></li>
+<li><p><strong>task_function</strong> (<em>TaskFunction</em>) – </p></li>
+<li><p><strong>config</strong> (<em>DictConfig</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.setup_smac">
+<span class="sig-name descname"><span class="pre">setup_smac</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hydra_plugins/hydra_smac_sweeper/smac_sweeper_backend.html#SMACSweeperBackend.setup_smac"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.setup_smac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup SMAC.</p>
+<p>Retrieve defaults and instantiate SMAC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Instance of a SMAC facade.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>SMAC4AC</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.sweep">
+<span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arguments</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hydra_plugins/hydra_smac_sweeper/smac_sweeper_backend.html#SMACSweeperBackend.sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.SMACSweeperBackend.sweep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run optimization with SMAC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>arguments</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Hydra overrides for the sweep. Must be empty.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Incumbent (best) configuration.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Configuration | None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Warning</strong> – When providing overriding arguments, override arguments do not have any effect.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.create_cluster">
+<span class="sig-prename descclassname"><span class="pre">hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.</span></span><span class="sig-name descname"><span class="pre">create_cluster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/hydra_plugins/hydra_smac_sweeper/smac_sweeper_backend.html#create_cluster"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydra_plugins.hydra_smac_sweeper.smac_sweeper_backend.create_cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create Dask cluster to schedule jobs on</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_cfg</strong> (<em>DictConfig</em>) – Configuration for the cluster</p></li>
+<li><p><strong>n_workers</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of workers, by default 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dask cluster</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>JobQueueCluster</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="hydra_plugins.hydra_smac_sweeper.smac_sweeper.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">hydra_plugins.hydra_smac_sweeper.smac_sweeper</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="../glossary.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Glossary</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <script src="../_static/js/index.9ea38e314b9e6d9dab77.js"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright Copyright 2023, benjamc.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a>
+7.1.2. Template is modified version of <a
+href="https://pydata-sphinx-theme.readthedocs.io">PyData Sphinx Theme</a>. <br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
