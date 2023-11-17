@@ -70,6 +70,9 @@ You can specify any kwargs available in `dask_jobqueue.SLURMCluster`.
 You can also run it locally by specifying the dask client to be `null`, e.g.
 ```bash
 python examples/multifidelity_mlp.py hydra.sweeper.smac_kwargs.dask_client=null -m
+
+
+python examples/blackbox_branin.py -m
 ```
 
 Or in the config file:
