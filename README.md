@@ -47,7 +47,8 @@ hydra:
       dask_client:
         _target_: dask.distributed.Client
         address: ${create_cluster:${cluster},${hydra.sweeper.scenario.n_workers}}
-``` 
+```
+⚠ Sometimes the cluster does not allow communication between dask workers. You can also use a local dask cluster on your (slurm) cluster in a job with enough cores. 
 
 The cluster is automatically created from the config node `cluster` and the number of workers defined in the scenario.
 This is an example configuration for the cluster itself, found in [examples/configs/hpc.yaml](examples/configs/hpc.yaml).
