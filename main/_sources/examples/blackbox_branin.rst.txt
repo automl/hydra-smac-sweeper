@@ -23,7 +23,7 @@ Branin
 
 .. GENERATED FROM PYTHON SOURCE LINES 5-31
 
-.. code-block:: default
+.. code-block:: Python
 
 
     import hydra
@@ -53,24 +53,16 @@ Branin
         branin()
 
 
-.. rst-class:: sphx-glr-timing
-
-   **Total running time of the script:** (0 minutes 0.000 seconds)
-
-
 .. _sphx_glr_download_examples_blackbox_branin.py:
 
 .. only:: html
 
   .. container:: sphx-glr-footer sphx-glr-footer-example
 
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
 
-
+      :download:`Download Jupyter notebook: blackbox_branin.ipynb <blackbox_branin.ipynb>`
 
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: blackbox_branin.py <blackbox_branin.py>`
-
-    .. container:: sphx-glr-download sphx-glr-download-jupyter
-
-      :download:`Download Jupyter notebook: blackbox_branin.ipynb <blackbox_branin.ipynb>`
