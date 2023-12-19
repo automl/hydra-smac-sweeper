@@ -22,6 +22,8 @@ from smac.facade.abstract_facade import AbstractFacade
 from smac.runner import DaskParallelRunner
 from smac.scenario import Scenario
 
+from distributed.deploy.local import LocalCluster
+
 log = logging.getLogger(__name__)
 
 
@@ -41,7 +43,8 @@ def create_cluster(cluster_cfg: DictConfig, n_workers: int = 1) -> JobQueueClust
         Dask cluster
     """
     cluster = instantiate(cluster_cfg)
-    cluster.scale(jobs=n_workers)
+    if not isinstance(cluster, LocalCluster):
+        cluster.scale(jobs=n_workers)
     return cluster
 
 
