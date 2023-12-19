@@ -267,6 +267,7 @@
 
 <span class="kn">from</span> <span class="nn">ConfigSpace</span> <span class="kn">import</span> <span class="n">Configuration</span><span class="p">,</span> <span class="n">ConfigurationSpace</span>  <span class="c1"># type: ignore[import]</span>
 <span class="kn">from</span> <span class="nn">dask_jobqueue</span> <span class="kn">import</span> <span class="n">JobQueueCluster</span>  <span class="c1"># type: ignore[import]</span>
+<span class="kn">from</span> <span class="nn">distributed.deploy.local</span> <span class="kn">import</span> <span class="n">LocalCluster</span>
 <span class="kn">from</span> <span class="nn">hydra.core.plugins</span> <span class="kn">import</span> <span class="n">Plugins</span>
 <span class="kn">from</span> <span class="nn">hydra.core.utils</span> <span class="kn">import</span> <span class="n">setup_globals</span>
 <span class="kn">from</span> <span class="nn">hydra.plugins.sweeper</span> <span class="kn">import</span> <span class="n">Sweeper</span>
@@ -300,7 +301,8 @@
 <span class="sd">        Dask cluster</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cluster</span> <span class="o">=</span> <span class="n">instantiate</span><span class="p">(</span><span class="n">cluster_cfg</span><span class="p">)</span>
-    <span class="n">cluster</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">jobs</span><span class="o">=</span><span class="n">n_workers</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">LocalCluster</span><span class="p">):</span>
+        <span class="n">cluster</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">jobs</span><span class="o">=</span><span class="n">n_workers</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cluster</span></div>
 
 
