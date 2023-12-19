@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ConfigSpace import Configuration, ConfigurationSpace  # type: ignore[import]
 from dask_jobqueue import JobQueueCluster  # type: ignore[import]
+from distributed.deploy.local import LocalCluster
 from hydra.core.plugins import Plugins
 from hydra.core.utils import setup_globals
 from hydra.plugins.sweeper import Sweeper
@@ -21,8 +22,6 @@ from rich import print as printr
 from smac.facade.abstract_facade import AbstractFacade
 from smac.runner import DaskParallelRunner
 from smac.scenario import Scenario
-
-from distributed.deploy.local import LocalCluster
 
 log = logging.getLogger(__name__)
 
